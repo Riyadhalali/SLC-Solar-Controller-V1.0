@@ -1,0 +1,14 @@
+0	1	mikrocAVR.exe -MSF -DBG -pATMEGA328P -LHF -DL -SSA -O11111114 -fo8 -BOOTSZ2048 -BOOTOP0 -N"F:\ENG. RIYAD\Ref\Ref Codes\Riyad_Complete_Codes\ATMEGA32A\Solar Auto Switcher\Solar Auto Switcher\MikroC\Solar_Auto_Switcher.mcpav" -SP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for AVR\Defs\" -SP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for AVR\Uses\lte64kw\" -SP"F:\ENG. RIYAD\Ref\Ref Codes\Riyad_Complete_Codes\ATMEGA32A\Solar Auto Switcher\Solar Auto Switcher\MikroC\" -SP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for AVR\Packages\FT800\Uses\" -SP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for AVR\Packages\FT810\Uses\" -SP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for AVR\Packages\FT812\Uses\" -IP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for AVR\Uses\lte64kw\" -IP"F:\ENG. RIYAD\Ref\Ref Codes\Riyad_Complete_Codes\ATMEGA32A\Solar Auto Switcher\Solar Auto Switcher\MikroC\" -IP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for AVR\Packages\FT800\Uses\" -IP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for AVR\Packages\FT810\Uses\" -IP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for AVR\Packages\FT812\Uses\" "Solar_Auto_Switcher.c" "ds1307.c" "__Lib_Math.mcl" "__Lib_MathDouble.mcl" "__Lib_System_nocall.mcl" "__Lib_Delays.mcl" "__Lib_CType.mcl" "__Lib_CString.mcl" "__Lib_CStdlib.mcl" "__Lib_CMath.mcl" "__Lib_Conversions.mcl" "__Lib_Sprintf.mcl" "__Lib_Time.mcl" "__Lib_Trigonometry.mcl" "__Lib_Button.mcl" "__Lib_Keypad4x4.mcl" "__Lib_SoftI2C.mcl" "__Lib_ADC_eio_ref2.mcl" "__Lib_EEPROM_eep.mcl" "__Lib_FLASH_rwe.mcl" "__Lib_TWI_eio.mcl" "__Lib_UART_d01_eio.mcl" "__Lib_CANSPI.mcl" "__Lib_CF.mcl" "__Lib_CFFat16.mcl" "__Lib_GlcdFonts.mcl" "__Lib_Glcd.mcl" "__Lib_LcdConsts.mcl" "__Lib_Lcd.mcl" "__Lib_Mmc.mcl" "__Lib_S1D13700.mcl" "__Lib_TouchPanel.mcl"	 
+diagnostics: 0	122	Compilation Started	ds1307.h
+hint: 0	1004	interrupt handler (Interrupt_Routine at 0x0002)	Solar_Auto_Switcher.c
+diagnostics: 1485	123	Compiled Successfully	Solar_Auto_Switcher.c
+diagnostics: 0	122	Compilation Started	ds1307.h
+diagnostics: 162	123	Compiled Successfully	ds1307.c
+diagnostics: 0	127	All files Compiled in 375 ms	 
+hint: 0	1144	Used RX (bytes): 32 (100%)   Free RX (bytes): 0 (0%)	Used RX (bytes): 32 (100%)   Free RX (bytes): 0 (0%)
+hint: 0	1144	Static RAM (bytes): 695   Dynamic RAM (bytes): 1353	Static RAM (bytes): 695   Dynamic RAM (bytes): 1353
+hint: 0	1144	Used ROM (bytes): 27842 (97%)  Free ROM (bytes): 830 (3%)	Used ROM (bytes): 27842 (97%)  Free ROM (bytes): 830 (3%)
+diagnostics: 0	125	Project Linked Successfully	Solar_Auto_Switcher.mcpav
+diagnostics: 0	128	Linked in 109 ms	 
+diagnostics: 0	129	Project 'Solar_Auto_Switcher.mcpav' completed: 515 ms	 
+diagnostics: 0	103	Finished successfully: 19 Feb 2022, 17:27:14	Solar_Auto_Switcher.mcpav
