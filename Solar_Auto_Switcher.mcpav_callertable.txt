@@ -8,10 +8,6 @@ main
 		Lcd_Init
 			Delay_5500us
 			Delay_1us
-		Lcd_Out
-			Lcd_Cmd
-			Lcd_Chr_CP
-				Lcd_Cmd
 	ADCBattery
 		ADC_Init
 		ADC_Init_Advanced
@@ -62,6 +58,9 @@ main
 		SetUpProgram
 			Lcd_Cmd
 			Lcd_Out
+				Lcd_Cmd
+				Lcd_Chr_CP
+					Lcd_Cmd
 			SetTimerOn_1
 				LCD_Clear
 					Lcd_Chr
@@ -178,6 +177,9 @@ main
 			StoreBytesIntoEEprom
 		EEPROM_Load
 		LCD_Clear
+	CheckForVoltageProtection
+		Lcd_Out
+		EEPROM_Write
 	Screen_1
 		Read_time
 			Read_DS1307
@@ -224,17 +226,15 @@ main
 			Dec2Bcd
 		EEPROM_Write
 		Lcd_Out
-		Lcd_Init
-		Lcd_Cmd
 		ToggleBuzzer
 		Start_Timer_0_A
 		LCD_Clear
+		Lcd_Init
+		Lcd_Cmd
 		float_op_big
 		float_op_less
 	TurnLoadsOffWhenGridOff
 		LCD_Clear
-	ErrorList
-		Lcd_Out
 	__CC2DW
 Interupt_Timer_0_A_OFFTime
 	LCD_Clear

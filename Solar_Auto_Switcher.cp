@@ -134,6 +134,7 @@ unsigned int realTimeLoop=0;
 int const ButtonDelay=200;
 char RunLoadsByBass=0;
 char TurnOffLoadsByPass=0;
+char VoltageProtectorEnableFlag=1;
 
 void EEPROM_Load();
 void Gpio_Init();
@@ -221,8 +222,8 @@ GPIO_Init();
 LCD_CMD(_LCD_CLEAR);
 LCD_Init();
 LCD_CMD(_LCD_CURSOR_OFF);
-LCD_OUT(1,1,"Starting ... ");
-Delay_ms(2000);
+
+Delay_ms(1000);
 }
 
 
@@ -268,7 +269,7 @@ SecondsRealTime=0;
 LCD_Clear(2,7,16);
 }
 LCD_Init();
-
+LCD_CMD(_LCD_CLEAR);
 LCD_CMD(_LCD_CURSOR_OFF);
 INTF1_bit=1;
 }
@@ -418,23 +419,11 @@ SecondsRealTimePv_ReConnect_T2=0;
 
 
 
-if ( PIND.B3 ==0 && ByPassState==0 && VoltageProtectorGood==1 )
+if ( PIND.B3 ==0 && ByPassState==0 && VoltageProtectorGood==1 && VoltageProtectionEnable==1 )
 {
 
 Delay_ms(500);
-SecondsRealTime++;
-if (SecondsRealTime==10)
-{
-LCD_Init();
-LCD_CMD(_LCD_CLEAR);
-LCD_CMD(_LCD_CURSOR_OFF);
-}
-if (SecondsRealTime==100)
-{
-LCD_Init();
-LCD_CMD(_LCD_CLEAR);
-LCD_CMD(_LCD_CURSOR_OFF);
-}
+
 
 if(SecondsRealTime >= startupTIme_1 &&  PIND.B3 ==0)
 {
@@ -449,17 +438,44 @@ if(SecondsRealTime >= startupTIme_2 &&  PIND.B3 ==0)
 
 ToggleBuzzer();
 }
-#line 406 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
-if( PIND.B3 ==0 && VoltageProtectorGood==0)
+#line 395 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+if( PIND.B3 ==0 && VoltageProtectorGood==0 && VoltageProtectionEnable==1)
 {
 Start_Timer_0_A();
 }
-#line 430 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+
 if( PIND.B3 ==1 && Timer_2_isOn == 1 && Timer_isOn == 1)
 {
  LCD_CLEAR(2,7,16);
 }
-#line 442 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+
+
+if( PIND.B3 ==0 && VoltageProtectionEnable==0 )
+{
+Delay_ms(500);
+SecondsRealTime++;
+
+if(SecondsRealTime >= startupTIme_1 &&  PIND.B3 ==0)
+{
+
+ PORTD.B6 =1;
+
+}
+if(SecondsRealTime >= startupTIme_2 &&  PIND.B3 ==0)
+{
+
+ PORTD.B7 =1;
+}
+
+}
+#line 431 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+if ( PIND.B3 ==0 && SecondsRealTime==startupTIme_2)
+{
+LCD_Init();
+LCD_CMD(_LCD_CLEAR);
+LCD_CMD(_LCD_CURSOR_OFF);
+}
+#line 443 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 if ( PIND.B3 ==1 && Timer_isOn==1 && Vin_Battery > StartLoadsVoltage && RunWithOutBattery== 0  && TurnOffLoadsByPass==0 )
 {
 SecondsRealTimePv_ReConnect_T1++;
@@ -504,7 +520,7 @@ if (Vin_Battery<Mini_Battery_Voltage_T2 &&  PIND.B3 ==1 && Timer_2_isOn==1 && Ru
 SecondsRealTimePv_ReConnect_T2=0;
 Start_Timer_0_A();
 }
-#line 502 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+#line 503 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 }
 
 
@@ -542,7 +558,7 @@ INTF0_bit=1;
 void SetUpProgram()
 {
 Delay_ms(100);
-LCD_CMD(_LCD_CLEAR);
+
 if ( PIND.B2 ==0)
 {
 LCD_CMD(_LCD_CLEAR);
@@ -596,7 +612,7 @@ Delay_ms(100);
 LCD_Clear(2,1,16);
 while ( PIND.B2 ==1)
 {
-#line 597 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+#line 598 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 ByteToStr(minutes_lcd_1,txt);
 LCD_OUT(2,6,"M:");
 LCD_OUT(2,1,"H:");
@@ -633,7 +649,7 @@ while ( PIND.B2 ==1)
 ByteToStr(hours_lcd_1,txt);
 
 LCD_Out(2,2,txt);
-#line 636 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+#line 637 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 if ( PINC.B0 ==1)
 {
 LCD_Clear(2,1,16);
@@ -670,7 +686,7 @@ LCD_Clear(2,1,16);
 Delay_ms(500);
 while ( PIND.B2 ==1)
 {
-#line 676 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+#line 677 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 ByteToStr(minutes_lcd_2,txt);
 LCD_OUT(2,6,"M:");
 LCD_OUT(2,1,"H:");
@@ -707,7 +723,7 @@ while ( PIND.B2 ==1)
 ByteToStr(hours_lcd_2,txt);
 
 LCD_Out(2,2,txt);
-#line 715 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+#line 716 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 if ( PINC.B0 ==1)
 {
 LCD_Clear(2,1,16);
@@ -743,7 +759,7 @@ Delay_ms(100);
 LCD_Clear(2,1,16);
 while ( PIND.B2 ==1)
 {
-#line 754 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+#line 755 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 ByteToStr(minutes_lcd_timer2_start,txt);
 LCD_OUT(2,6,"M:");
 LCD_OUT(2,1,"H:");
@@ -780,7 +796,7 @@ while ( PIND.B2 ==1)
 ByteToStr(hours_lcd_timer2_start,txt);
 
 LCD_Out(2,2,txt);
-#line 794 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+#line 795 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 if ( PINC.B0 ==1)
 {
 break;
@@ -816,7 +832,7 @@ LCD_Clear(2,1,16);
 Delay_ms(500);
 while ( PIND.B2 ==1)
 {
-#line 833 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+#line 834 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 ByteToStr(minutes_lcd_timer2_stop,txt);
 LCD_OUT(2,6,"M:");
 LCD_OUT(2,1,"H:");
@@ -848,7 +864,7 @@ while ( PIND.B2 ==1)
 ByteToStr(hours_lcd_timer2_stop,txt);
 
 LCD_Out(2,2,txt);
-#line 868 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+#line 869 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 if ( PINC.B0 ==1)
 {
 LCD_Clear(2,1,16);
@@ -880,7 +896,7 @@ EEPROM_Write(0x21,minutes_lcd_timer2_stop);
 void SetDS1307_Time()
 {
 LCD_Clear(1,1,16);
-LCD_OUT(1,1,"Set Time[H] [9]");
+LCD_OUT(1,1,"Set Time [9]");
 Delay_ms(500);
 set_ds1307_minutes=ReadMinutes();
 set_ds1307_hours=ReadHours();
@@ -890,14 +906,7 @@ while ( PIND.B2 ==1)
 ByteToStr(set_ds1307_hours,txt);
 LCD_OUT(2,1,"H:");
 LCD_Out(2,2,txt);
-
-ByteToStr(set_ds1307_minutes,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
-
-ByteToStr(set_ds1307_seconds,txt);
-LCD_OUT(2,12,"S:");
-LCD_Out(2,13,txt);
+#line 918 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 if ( PINC.B0 ==1) break;
 while ( PIND.B0 ==1 ||  PIND.B1 ==1 )
 {
@@ -919,14 +928,14 @@ if (set_ds1307_hours<0) set_ds1307_hours=0;
 
 Delay_ms(500);
 LCD_Clear(1,1,16);
-LCD_OUT(1,1,"Set Time[M] [10]");
+
 Delay_ms(500);
 while ( PIND.B2 ==1)
 {
+#line 948 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 ByteToStr(set_ds1307_minutes,txt);
-
+LCD_OUT(2,6,"M:");
 LCD_Out(2,7,txt);
-
 if ( PINC.B0 ==1) break;
 while ( PIND.B0 ==1 ||  PIND.B1 ==1)
 {
@@ -948,12 +957,13 @@ if(set_ds1307_minutes<0) set_ds1307_minutes=0;
 
 Delay_ms(500);
 LCD_Clear(1,1,16);
-LCD_OUT(1,1,"Set Time[S] [11]");
+
 Delay_ms(500);
 while ( PIND.B2 ==1)
 {
+#line 979 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 ByteToStr(set_ds1307_seconds,txt);
-
+LCD_OUT(2,12,"S:");
 LCD_Out(2,13,txt);
 if ( PINC.B0 ==1) break;
 while( PIND.B0 ==1 ||  PIND.B1 ==1)
@@ -979,7 +989,7 @@ Write_Time(Dec2Bcd(set_ds1307_seconds),Dec2Bcd(set_ds1307_minutes),Dec2Bcd(set_d
 Delay_ms(1000);
 LCD_Clear(1,1,16);
 LCD_CLear(2,1,16);
-LCD_OUT(1,1,"Set Date[D] [12]");
+
 
 set_ds1307_day=ReadDate(0x04);
 Delay_ms(500);
@@ -1068,7 +1078,7 @@ if (set_ds1307_year<0) set_ds1307_year=0;
 Write_Date(Dec2Bcd(set_ds1307_day),Dec2Bcd(set_ds1307_month),Dec2Bcd(set_ds1307_year));
 }
 }
-#line 1179 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+#line 1187 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 void SetLowBatteryVoltage()
 {
 LCD_OUT(1,1,"Low Battery  [5]");
@@ -1098,6 +1108,7 @@ if (Mini_Battery_Voltage>65) Mini_Battery_Voltage=0;
 if (Mini_Battery_Voltage<0) Mini_Battery_Voltage=0;
 }
 }
+StoreBytesIntoEEprom(0x30,(unsigned short *)&Mini_Battery_Voltage,4);
 
 Delay_ms(1000);
 while( PIND.B2 ==1)
@@ -1124,7 +1135,7 @@ if (Mini_Battery_Voltage_T2>65) Mini_Battery_Voltage_T2=0;
 if (Mini_Battery_Voltage_T2<0) Mini_Battery_Voltage_T2=0;
 }
 }
-StoreBytesIntoEEprom(0x30,(unsigned short *)&Mini_Battery_Voltage,4);
+
 StoreBytesIntoEEprom(0x51,(unsigned short *)&Mini_Battery_Voltage_T2,4);
 LCD_CMD(_LCD_CLEAR);
 }
@@ -1159,7 +1170,9 @@ if (StartLoadsVoltage<0) StartLoadsVoltage=0;
 }
 }
 
+StoreBytesIntoEEprom(0x40,(unsigned short *)&StartLoadsVoltage,4);
 Delay_ms(1000);
+
 while( PIND.B2 ==1)
 {
 LCD_OUT(2,1,"T2");
@@ -1187,7 +1200,7 @@ if (StartLoadsVoltage_T2>65) StartLoadsVoltage_T2=0;
 if (StartLoadsVoltage_T2<0) StartLoadsVoltage_T2=0;
 }
 }
-StoreBytesIntoEEprom(0x40,(unsigned short *)&StartLoadsVoltage,4);
+
 StoreBytesIntoEEprom(0x55,(unsigned short *)&StartLoadsVoltage_T2,4);
 
 LCD_CMD(_LCD_CLEAR);
@@ -1288,6 +1301,7 @@ if(startupTIme_1 > 600 ) startupTIme_1=0;
 if (startupTIme_1<0) startupTIme_1=0;
 }
 }
+StoreBytesIntoEEprom(0x45,(unsigned short *)&startupTIme_1,2);
 
 Delay_ms(1000);
 while ( PIND.B2 ==1)
@@ -1314,13 +1328,13 @@ if (startupTIme_2<0) startupTIme_2=0;
 }
 }
 
-StoreBytesIntoEEprom(0x45,(unsigned short *)&startupTIme_1,2);
+
 StoreBytesIntoEEprom(0x47,(unsigned short *)&startupTIme_2,2);
 LCD_CMD(_LCD_CLEAR);
 
 
 }
-#line 1457 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+#line 1469 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 void Screen_1()
 {
 
@@ -1366,9 +1380,15 @@ Delay_ms(500);
 
 unsigned int ReadAC()
 {
-unsigned int r;
-unsigned int max_v=0;
+char numberOfSamples=100;
+char numberOfAverage=10;
+unsigned long sum=0;
+unsigned long r=0;
+unsigned long max_v=0;
 char i=0;
+char j=0;
+unsigned long average=0;
+
 for (i=0;i<100;i++)
 {
 r=ADC_Read(3);
@@ -1376,6 +1396,7 @@ if (max_v<r) max_v=r;
 delay_us(200);
 }
 return max_v;
+#line 1543 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 }
 
 void CalculateAC()
@@ -1418,7 +1439,7 @@ VoltageProtectorGood=1;
 
 void ErrorList()
  {
-#line 1563 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+#line 1594 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 if(VoltageProtectorGood==0 &&  PIND.B3 ==0) {LCD_OUT(1,16,"2");} else {LCD_OUT(2,16," ");}
 
  }
@@ -1535,7 +1556,7 @@ StartLoadsVoltage=26.5,
 startupTIme_1 =180,
 startupTIme_2=240,
 Mini_Battery_Voltage_T2=25.5,
-StartLoadsVoltage_T2=2.5;
+StartLoadsVoltage_T2=27.5;
 
 EEPROM_Write(0x00,9);
 EEPROM_Write(0x01,0);
@@ -1559,11 +1580,12 @@ EEPROM_Write(0x12,255);
 EEPROM_Write(0x13,170);
 EEPROM_Write(0x49,0);
 EEPROM_Write(0x50,0);
+EEPROM_Write(0x15,1);
 }
 
 RunTimersNowCheck()
 {
-#line 1725 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+#line 1757 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 if( PIND.B0 ==1 &&  PINC.B0 ==0)
 {
 Delay_ms(5000);
@@ -1608,7 +1630,7 @@ Delay_ms(1000);
 LCD_CLEAR(2,1,16);
 }
 }
-#line 1788 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+#line 1820 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 if( PIND.B1 ==1 &&  PINC.B0 ==0)
 {
 Delay_ms(2000);
@@ -1665,7 +1687,7 @@ SREG_I_bit=1;
 void CheckForSet()
 {
 
-if ( PIND.B2 ==0) SetUpProgram();
+if ( PIND.B2 ==0 &&  PINC.B0 ==0) SetUpProgram();
 
 }
 
@@ -1702,7 +1724,7 @@ Timer_isOn=1;
 EEPROM_Write(0x49,1);
 }
 }
-#line 1907 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+#line 1939 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 if (ReadHours() >= hours_lcd_timer2_start && ReadMinutes() >= minutes_lcd_timer2_start && ReadHours() < hours_lcd_timer2_stop )
 {
 Timer_2_isOn=1;
@@ -1717,7 +1739,7 @@ Timer_2_isOn=1;
 EEPROM_Write(0x50,1);
 }
 }
-#line 1945 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+#line 1977 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 }
 
 
@@ -1742,11 +1764,27 @@ LCD_Clear(2,7,16);
 
 }
 
-
-void CheckbatterySystemVoltage()
+CheckForVoltageProtection()
 {
-
-
+if (VoltageProtectionEnable==1) LCD_OUT(2,16,"P"); else LCD_OUT(2,16," ") ;
+if( PINC.B0 ==1 &&  PIND.B2 ==0 )
+{
+delay_ms(2000);
+if( PINC.B0 ==1 &&  PIND.B2 ==0 ) {
+if (VoltageProtectorEnableFlag==1)
+{
+VoltageProtectionEnable=0;
+VoltageProtectorEnableFlag=0;
+EEPROM_Write(0x15,0);
+}
+else if ( VoltageProtectorEnableFlag==0)
+{
+VoltageProtectionEnable=1;
+VoltageProtectorEnableFlag=1;
+EEPROM_Write(0x15,1);
+}
+}
+}
 
 }
 
@@ -1769,13 +1807,14 @@ CheckForTimerActivationInRange();
 AutoRunWithOutBatteryProtection();
 CheckForSet();
 RunTimersNowCheck();
+CheckForVoltageProtection();
 
 
 Screen_1();
 Check_Timers();
 TurnLoadsOffWhenGridOff();
 
-ErrorList();
+
 Delay_ms(200);
 
 

@@ -330,9 +330,9 @@ cf_write_init
 cf_write_sector
 character8x7
 check_timers
-checkbatterysystemvoltage
 checkforset
 checkfortimeractivationinrange
+checkforvoltageprotection
 checktimeoccuredoff
 checktimeoccuredon
 clkpce
@@ -1927,6 +1927,7 @@ vin_pv_old
 vin_pv_present
 voltageprotectionenable
 voltageprotector
+voltageprotectorenableflag
 voltageprotectorgood
 wcol
 wcol_bit
