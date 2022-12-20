@@ -1,7 +1,7 @@
-#line 1 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Auto Switcher/MikroC/Solar_Auto_Switcher.c"
-#line 1 "f:/eng. riyad/ref/ref codes/riyad_complete_codes/atmega32a/solar auto switcher/solar auto switcher/mikroc/ds1307.h"
-#line 1 "f:/eng. riyad/ref/ref codes/riyad_complete_codes/atmega32a/solar auto switcher/solar auto switcher/mikroc/ds1307.h"
-#line 7 "f:/eng. riyad/ref/ref codes/riyad_complete_codes/atmega32a/solar auto switcher/solar auto switcher/mikroc/ds1307.h"
+#line 1 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+#line 1 "f:/eng. riyad/ref/ref codes/riyad_complete_codes/atmega32a/solar auto switcher/solar loads control v1.0/mikroc/ds1307.h"
+#line 1 "f:/eng. riyad/ref/ref codes/riyad_complete_codes/atmega32a/solar auto switcher/solar loads control v1.0/mikroc/ds1307.h"
+#line 7 "f:/eng. riyad/ref/ref codes/riyad_complete_codes/atmega32a/solar auto switcher/solar loads control v1.0/mikroc/ds1307.h"
 void write_Ds1307(unsigned short Address, unsigned short w_data);
 unsigned short Read_DS1307(unsigned short Address);
 void Read_time();
@@ -9,7 +9,61 @@ void TWI_Config();
 char CheckTimeOccuredOn(char seconds_required, char minutes_required, char hours_required);
 char CheckTimeOccuredOff(char seconds_required, char minutes_required, char hours_required);
 char CorrectionLoad();
-#line 52 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Auto Switcher/MikroC/Solar_Auto_Switcher.c"
+unsigned short ReadMinutes();
+unsigned short ReadHours();
+
+
+
+
+unsigned short ReadDate(unsigned short date_address);
+#line 1 "c:/users/public/documents/mikroelektronika/mikroc pro for avr/include/stdint.h"
+
+
+
+
+typedef signed char int8_t;
+typedef signed int int16_t;
+typedef signed long int int32_t;
+
+
+typedef unsigned char uint8_t;
+typedef unsigned int uint16_t;
+typedef unsigned long int uint32_t;
+
+
+typedef signed char int_least8_t;
+typedef signed int int_least16_t;
+typedef signed long int int_least32_t;
+
+
+typedef unsigned char uint_least8_t;
+typedef unsigned int uint_least16_t;
+typedef unsigned long int uint_least32_t;
+
+
+
+typedef signed char int_fast8_t;
+typedef signed int int_fast16_t;
+typedef signed long int int_fast32_t;
+
+
+typedef unsigned char uint_fast8_t;
+typedef unsigned int uint_fast16_t;
+typedef unsigned long int uint_fast32_t;
+
+
+typedef signed int intptr_t;
+typedef unsigned int uintptr_t;
+
+
+typedef signed long int intmax_t;
+typedef unsigned long int uintmax_t;
+#line 1 "c:/users/public/documents/mikroelektronika/mikroc pro for avr/include/stdbool.h"
+
+
+
+ typedef char _Bool;
+#line 17 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 sbit LCD_RS at PORTB0_bit;
 sbit LCD_EN at PORTB1_bit;
 sbit LCD_D7 at PORTB5_bit;
@@ -24,23 +78,22 @@ sbit LCD_D6_Direction at DDB4_bit;
 sbit LCD_D5_Direction at DDB3_bit;
 sbit LCD_D4_Direction at DDB2_bit;
 
+
 char set_status=0;
-char txt[10];
+char txt[21];
 char seconds_lcd_1=0,minutes_lcd_1=0,hours_lcd_1=0;
 char seconds_lcd_2=0,minutes_lcd_2=0,hours_lcd_2=0;
-char hours_lcd_timer2_start=0,hours_lcd_timer2_stop=0;
-char minutes_lcd_timer2_start=0,minutes_lcd_timer2_stop=0;
-char hours_lcd_timer3_start=0,hours_lcd_timer3_stop=0;
-char minutes_lcd_timer3_start=0,minutes_lcd_timer3_stop=0;
+char hours_lcd_timer2_start=0,hours_lcd_timer2_stop=0,seconds_lcd_timer2_start=0;
+char minutes_lcd_timer2_start=0,minutes_lcd_timer2_stop=0,seconds_lcd_timer2_stop=0;
 char Relay_State;
-char set_ds1307_minutes=12,set_ds1307_hours=12,set_ds1307_seconds=0;
+char set_ds1307_minutes=12,set_ds1307_hours=12,set_ds1307_seconds=0,set_ds1307_day=0,set_ds1307_month=0,set_ds1307_year=0;
 char ByPassState=0;
-float Battery_Voltage;
+float Battery_Voltage,PV_Voltage,Vin_PV,Vin_PV_Old=0,Vin_PV_Present=0;
 char BatteryVoltageSystem=0;
 unsigned int ADC_Value;
+unsigned int ADC_Value_PV;
 float Vin_Battery;
-float Mini_Battery_Voltage=12.0;
-char outBuff[21];
+float Mini_Battery_Voltage=0,Mini_Battery_Voltage_T2=0;
 char Timer_Enable=1;
 char Timer_2_Enable=1;
 char Timer_3_Enable=1;
@@ -56,6 +109,31 @@ char Saved_Voltage;
 char Adjusted_Voltage;
 char AcBuzzerActiveTimes=0;
 char AcBuzzerActive=0;
+char matched_timer_1_start,matched_timer_1_stop, matched_timer_2_start,matched_timer_2_stop;
+char Old_Reg=0;
+char SolarOnGridOff=0,SolarOffGridOn=0;
+char SolarOnGridOff_2=0,SolarOffGridOn_2=0;
+char Timer_isOn=0,Timer_2_isOn=0;
+unsigned int Timer_Counter_2=0, Timer_Counter_3=0,Timer_Counter_4=0;
+unsigned int Low_PV_Voltage=50;
+ _Bool  Grid_Already_On= 0 ;
+unsigned short old_timer_1=0,old_timer_2=0,temp=0;
+unsigned int startupTIme_1=0,startupTIme_2=0;
+char updateScreen=0;
+float arrayBatt[21];
+float StartLoadsVoltage=0,StartLoadsVoltage_T2=0;
+float BuzzerVoltage=0.1;
+unsigned short ReadMinutesMinusOldTimer_1=0;
+unsigned short ReadMinutesMinusOldTimer_2=0;
+unsigned int Timer_Counter_For_Grid_Turn_Off=0;
+char RunTimersNowState=0;
+unsigned int SecondsRealTime=0;
+unsigned int SecondsRealTimePv_ReConnect_T1=0,SecondsRealTimePv_ReConnect_T2=0;
+unsigned int realTimeLoop=0;
+ _Bool  RunWithOutBattery= 1 ;
+int const ButtonDelay=200;
+char RunLoadsByBass=0;
+char TurnOffLoadsByPass=0;
 
 void EEPROM_Load();
 void Gpio_Init();
@@ -69,12 +147,9 @@ void SetTimerOn_1();
 void SetTimerOff_1();
 void SetTimerOn_2();
 void SetTimerOff_2();
-void SetTimerOn_3();
-void SetTimerOff_3();
-void SetDS1307Hours_Program();
+void SetDS1307_Time();
 void SetDS1307Minutes_Program();
 void SetDS1307Seconds_Program();
-void AC_Available_ByPass_System();
 void TimerDelay();
 void Read_Battery();
 void SetLowBatteryVoltage();
@@ -93,20 +168,35 @@ void EnableVoltageGuard();
 void SetACVoltageError() ;
 void GetVoltageNow();
 void ToggleBuzzer();
+void Start_Timer();
+void Stop_Timer();
+void ReadPV_Voltage();
+void SetLowPV_Voltage();
+void RestoreFactorySettings();
+void EEPROM_FactorySettings();
+void Start_Timer_2_B();
+void Start_Timer_0_A();
+void Stop_Timer_0();
+void Read_PV_Continues();
+void Startup_Timers();
+void SetStartUpLoadsVoltage();
+void RunTimersNow();
+void TurnACLoadsByPassOn();
+void RunTimersNowCheck();
+void Watch_Dog_Timer_Enable();
+void Watch_Dog_Timer_Disable();
+void Write_Date();
 
 void Gpio_Init()
 {
-DDRD.B4=1;
-DDRD.B5=1;
 DDRD.B6=1;
 DDRD.B7=1;
-DDRD.B0=1;
 DDRD.B2=0;
 DDRD.B1=0;
 DDRD.B0=0;
 DDRD.B3=0;
 DDRC.B2=1;
-DDRC.B0=1;
+DDRC.B0=0;
 }
 
 
@@ -117,24 +207,24 @@ write_Ds1307(0x01,minutes);
 write_Ds1307(0x02,hours);
 }
 
+
+void Write_Date(unsigned int day, unsigned int month,unsigned int year)
+{
+write_Ds1307(0x04,day);
+Write_Ds1307(0x05,month);
+Write_Ds1307(0x06,year);
+}
+
 void Config()
 {
 GPIO_Init();
+LCD_CMD(_LCD_CLEAR);
 LCD_Init();
 LCD_CMD(_LCD_CURSOR_OFF);
-LCD_CMD(_LCD_CLEAR);
 LCD_OUT(1,1,"Starting ... ");
 Delay_ms(2000);
-
 }
 
-void Config_Interrupts()
-{
-ISC01_bit=0;
-ISC00_bit=0;
-INT0_bit=1;
-SREG_I_bit=1;
-}
 
 void LCD_Clear(unsigned short Row, unsigned short Start, unsigned short End)
 {
@@ -144,6 +234,45 @@ void LCD_Clear(unsigned short Row, unsigned short Start, unsigned short End)
  Lcd_Chr(Row,Column,32);
  }
 }
+
+
+void Config_Interrupts()
+{
+ISC10_bit=1;
+ISC11_bit=1;
+INT1_bit=1;
+SREG_I_bit=1;
+}
+
+
+
+void Interrupt_INT1 () iv IVT_ADDR_INT1
+{
+AcBuzzerActiveTimes=0;
+
+if( PIND.B3 ==1 && Timer_isOn==0 )
+{
+
+
+SecondsRealTime=0;
+ PORTD.B6 =0;
+LCD_Clear(2,7,16);
+}
+
+if ( PIND.B3 ==1 && Timer_2_isOn==0)
+{
+
+
+SecondsRealTime=0;
+ PORTD.B7 =0;
+LCD_Clear(2,7,16);
+}
+LCD_Init();
+
+LCD_CMD(_LCD_CURSOR_OFF);
+INTF1_bit=1;
+}
+
 
 void EEPROM_Load()
 {
@@ -158,63 +287,16 @@ minutes_lcd_timer2_start=EEPROM_Read(0x19);
 hours_lcd_timer2_stop=EEPROM_Read(0x20);
 minutes_lcd_timer2_stop=EEPROM_Read(0x21);
 
-hours_lcd_timer3_start=EEPROM_Read(0x22);
-minutes_lcd_timer3_start=EEPROM_Read(0x23);
-hours_lcd_timer3_stop=EEPROM_Read(0x24);
-minutes_lcd_timer3_stop=EEPROM_Read(0x25);
 
-ByPassState=EEPROM_Read(0x06);
-Timer_Enable=EEPROM_Read(0x011);
+ByPassState=0;
+
+Timer_Enable=1;
 High_Voltage=EEPROM_Read(0x12);
 Low_Voltage=EEPROM_Read(0x13);
-
 VoltageProtectionEnable=EEPROM_Read(0x15);
-Error_Voltage=EEPROM_Read(0x16);
-Adjusted_Voltage=EEPROM_Read(0x17);
 
-if (hours_lcd_1== 0xff ) EEPROM_Write(0x00,0x0A);
-if(minutes_lcd_1==0xFF) EEPROM_Write(0x01,0x00);
-if(hours_lcd_2==0xFF) EEPROM_Write(0x03,0x0E);
-if(minutes_lcd_2==0xFF) EEPROM_Write(0x04,0x00);
-if(ByPassState==0xFF) EEPROM_Write(0x06,0x01) ;
-if(Timer_Enable==0xFF) EEPROM_Write(0x11,0x01);
-if(High_Voltage==0xFF) EEPROM_Write(0x12,0xF5);
-if(Low_Voltage==0xFF) EEPROM_Write(0x13,0xAA);
 
-if(VoltageProtectionEnable==0xFF) EEPROM_Write(0x15,0x01);
-if(Error_Voltage==0xFF) EEPROM_Write(0x16,0x00);
-if(Adjusted_Voltage==0xFF) EEPROM_Write(0x17,0x00);
-if(hours_lcd_timer2_start==0xFF) EEPROM_Write(0x18,0x0A);
-if(minutes_lcd_timer2_start==0xFF) EEPROM_Read(0x00);
-if(hours_lcd_timer2_stop==0xFF) EEPROM_Write(0x20,0x0E);
-if(minutes_lcd_timer2_stop==0xFF) EEPROM_Write(0x21,0x00);
-if(hours_lcd_timer3_start==0xFF) EEPROM_Write(0x22,0x0A);
-if(minutes_lcd_timer3_start==0xFF) EEPROM_Write(0x23,0X00);
-if(hours_lcd_timer3_stop==0xFF) EEPROM_Write(0x24,0x0E);
-if(minutes_lcd_timer3_stop==0xFF) EEPROM_Write(0x25,0x00);
 
-hours_lcd_1=EEPROM_Read(0x00);
-minutes_lcd_1=EEPROM_Read(0x01);
-
-hours_lcd_2=EEPROM_Read(0x03);
-minutes_lcd_2=EEPROM_Read(0x04);
-
-ByPassState=EEPROM_Read(0x06);
-Timer_Enable=EEPROM_Read(0x011);
-High_Voltage=EEPROM_Read(0x12);
-Low_Voltage=EEPROM_Read(0x13);
-
-VoltageProtectionEnable=EEPROM_Read(0x15);
-Error_Voltage=EEPROM_Read(0x16);
-Adjusted_Voltage=EEPROM_Read(0x17);
-hours_lcd_timer2_start=EEPROM_Read(0x18);
-minutes_lcd_timer2_start=EEPROM_Read(0x19);
-hours_lcd_timer2_stop=EEPROM_Read(0x20);
-minutes_lcd_timer2_stop=EEPROM_Read(0x21);
-hours_lcd_timer3_start=EEPROM_Read(0x22);
-minutes_lcd_timer3_start=EEPROM_Read(0x23);
-hours_lcd_timer3_stop=EEPROM_Read(0x24);
-minutes_lcd_timer3_stop=EEPROM_Read(0x25);
 }
 
 
@@ -242,133 +324,187 @@ Delay_ms(50);
 
 void Check_Timers()
 {
-char matched_timer_1_start,matched_timer_1_stop;
-char matched_timer_2_start,matched_timer_2_stop;
-char matched_timer_3_start,matched_timer_3_stop;
 
 matched_timer_1_start=CheckTimeOccuredOn(seconds_lcd_1,minutes_lcd_1,hours_lcd_1);
 matched_timer_1_stop=CheckTimeOccuredOff(seconds_lcd_2,minutes_lcd_2,hours_lcd_2);
-matched_timer_2_start=CheckTimeOccuredOn(0x00,minutes_lcd_timer2_start,hours_lcd_timer2_start);
-matched_timer_2_stop=CheckTimeOccuredOff(0x00,minutes_lcd_timer2_stop,hours_lcd_timer2_stop);
-matched_timer_3_start=CheckTimeOccuredOn(0x00,minutes_lcd_timer3_start,hours_lcd_timer3_start);
-matched_timer_3_stop=CheckTimeOccuredOff(0x00,minutes_lcd_timer3_stop,hours_lcd_timer3_stop);
+matched_timer_2_start=CheckTimeOccuredOn(seconds_lcd_timer2_start,minutes_lcd_timer2_start,hours_lcd_timer2_start);
+matched_timer_2_stop=CheckTimeOccuredOff(seconds_lcd_timer2_stop,minutes_lcd_timer2_stop,hours_lcd_timer2_stop);
 
-
-
-if ( PIND.B3 ==1 && Timer_Enable==1 )
-{
 
 if (matched_timer_1_start==1)
 {
+Timer_isOn=1;
+TurnOffLoadsByPass=0;
+EEPROM_write(0x49,1);
 
- PORTD.B4 =1;
-LCD_OUT(1,16,"1");
+
+if ( PIND.B3 ==1 && Timer_Enable==1 && Vin_Battery > StartLoadsVoltage && RunWithOutBattery== 0  )
+{
+ PORTD.B6 =1;
+
 }
+
+if ( PIND.B3 ==1 && Timer_Enable==1 && RunWithOutBattery== 1  )
+{
+ PORTD.B6 =1;
+}
+}
+
 
 if (matched_timer_1_stop==1)
 {
+Timer_isOn=0;
+EEPROM_write(0x49,0);
 
- PORTD.B4 =0;
-LCD_OUT(1,16," ");
-}
-}
-
-
-if ( PIND.B3 ==1 && Timer_2_Enable==1 )
+if ( PIND.B3 ==1 && Timer_Enable==1 && RunWithOutBattery== 0  )
 {
+
+SecondsRealTimePv_ReConnect_T1=0;
+ PORTD.B6 =0;
+
+}
+if ( PIND.B3 ==1 && Timer_Enable==1 && RunWithOutBattery== 1  )
+{
+
+SecondsRealTimePv_ReConnect_T1=0;
+ PORTD.B6 =0;
+}
+}
+
+
 
 if (matched_timer_2_start==1)
 {
+Timer_2_isOn=1;
+TurnOffLoadsByPass=0;
+EEPROM_write(0x50,1);
 
- PORTD.B5 =1;
-LCD_OUT(1,16,"2");
+if ( PIND.B3 ==1 && Timer_Enable==1 && Vin_Battery > StartLoadsVoltage_T2 && RunWithOutBattery== 0 )
+{
+ PORTD.B7 =1;
+
 }
+
+if ( PIND.B3 ==1 && Timer_Enable==1 && RunWithOutBattery== 1 )
+{
+ PORTD.B7 =1;
+}
+
+}
+
 
 if (matched_timer_2_stop==1)
 {
+Timer_2_isOn=0;
+EEPROM_write(0x50,0);
 
- PORTD.B5 =0;
-LCD_OUT(1,16," ");
-}
-}
-
- if ( PIND.B3 ==1 && Timer_3_Enable==1 )
+if ( PIND.B3 ==1 && Timer_Enable==1 && RunWithOutBattery== 0  )
 {
 
-if (matched_timer_3_start==1)
+
+ PORTD.B7 =0;
+SecondsRealTimePv_ReConnect_T2=0;
+LCD_OUT(1,16," ");
+}
+
+if ( PIND.B3 ==1 && Timer_Enable==1 && RunWithOutBattery== 1  )
+{
+SecondsRealTimePv_ReConnect_T2=0;
+ PORTD.B7 =0;
+}
+
+}
+
+
+
+
+if ( PIND.B3 ==0 && ByPassState==0 && VoltageProtectorGood==1 )
+{
+
+Delay_ms(500);
+SecondsRealTime++;
+if (SecondsRealTime==10)
+{
+LCD_Init();
+LCD_CMD(_LCD_CLEAR);
+LCD_CMD(_LCD_CURSOR_OFF);
+}
+if (SecondsRealTime==100)
+{
+LCD_Init();
+LCD_CMD(_LCD_CLEAR);
+LCD_CMD(_LCD_CURSOR_OFF);
+}
+
+if(SecondsRealTime >= startupTIme_1 &&  PIND.B3 ==0)
 {
 
  PORTD.B6 =1;
-LCD_OUT(1,16,"3");
-}
 
-if (matched_timer_3_stop==1)
+}
+if(SecondsRealTime >= startupTIme_2 &&  PIND.B3 ==0)
 {
-
- PORTD.B6 =0;
-LCD_OUT(1,16," ");
-}
-}
-
-if((matched_timer_1_start==1 || matched_timer_2_start==1 || matched_timer_3_start==1) && ( PIND.B3 ==1 && Timer_Enable==1) )
-{
-
  PORTD.B7 =1;
 }
 
-if (( PORTD.B4 ==0 &&  PORTD.B5 ==0 &&  PORTD.B6 ==0 ) && ( PIND.B3 ==1 && Timer_Enable==1) )
-{
- PORTD.B7 =0;
-}
-
-
-
-
-if(VoltageProtectionEnable==1)
-{
-if(VoltageProtectorGood==1)
-{
-if ( PIND.B3 ==0 && ByPassState==0 )
-{
- PORTD.B4 =0;
- PORTD.B5 =0;
- PORTD.B6 =0 ;
- PORTD.B7 =0;
- PORTC.B0 =1;
-LCD_OUT(2,16,"G");
 ToggleBuzzer();
 }
-if( PIND.B3 ==0 && ByPassState==1 )
+#line 406 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+if( PIND.B3 ==0 && VoltageProtectorGood==0)
 {
- PORTD.B4 =1;
- PORTD.B5 =1;
- PORTD.B6 =1 ;
- PORTC.B0 =0;
+Start_Timer_0_A();
+}
+#line 430 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+if( PIND.B3 ==1 && Timer_2_isOn == 1 && Timer_isOn == 1)
+{
+ LCD_CLEAR(2,7,16);
+}
+#line 442 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+if ( PIND.B3 ==1 && Timer_isOn==1 && Vin_Battery > StartLoadsVoltage && RunWithOutBattery== 0  && TurnOffLoadsByPass==0 )
+{
+SecondsRealTimePv_ReConnect_T1++;
+Delay_ms(400);
+if ( SecondsRealTimePv_ReConnect_T1 > startupTIme_1)  PORTD.B6 =1;
+
+}
+if ( PIND.B3 ==1 && Timer_isOn==1 && RunWithOutBattery== 1  && TurnOffLoadsByPass==0 )
+{
+SecondsRealTimePv_ReConnect_T1++;
+Delay_ms(400);
+if ( SecondsRealTimePv_ReConnect_T1 > startupTIme_1)  PORTD.B6 =1;
+
+}
+
+if ( PIND.B3 ==1 && Timer_2_isOn==1 && Vin_Battery > StartLoadsVoltage_T2 && RunWithOutBattery== 0  && TurnOffLoadsByPass==0)
+{
+SecondsRealTimePv_ReConnect_T2++;
+Delay_ms(400);
+if ( SecondsRealTimePv_ReConnect_T2 > startupTIme_2)
  PORTD.B7 =1;
-LCD_OUT(2,15,"~G");
 }
-}
+
+if ( PIND.B3 ==1 && Timer_2_isOn==1 && RunWithOutBattery== 1  && TurnOffLoadsByPass==0)
+{
+SecondsRealTimePv_ReConnect_T2++;
+Delay_ms(400);
+if ( SecondsRealTimePv_ReConnect_T2 > startupTIme_2)
+ PORTD.B7 =1;
 }
 
 
-if (VoltageProtectionEnable==0)
+if (Vin_Battery<Mini_Battery_Voltage &&  PIND.B3 ==1 && Timer_isOn==1 && RunWithOutBattery== 0 )
 {
-if ( PIND.B3 ==0 && ByPassState==0 )
-{
- PORTD.B4 =0;
- PORTD.B5 =0 ;
- PORTD.B6 =0;
- PORTD.B7 =0;
- PORTC.B0 =1;
-LCD_OUT(2,16,"G");
-}
+SecondsRealTimePv_ReConnect_T1=0;
+Start_Timer_0_A();
 }
 
-if( PIND.B3 ==1)
+
+if (Vin_Battery<Mini_Battery_Voltage_T2 &&  PIND.B3 ==1 && Timer_2_isOn==1 && RunWithOutBattery== 0 )
 {
-AcBuzzerActiveTimes=0;
-LCD_OUT(2,15,"  ");
+SecondsRealTimePv_ReConnect_T2=0;
+Start_Timer_0_A();
 }
+#line 502 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 }
 
 
@@ -384,10 +520,10 @@ void ToggleBuzzer()
 {
 if (AcBuzzerActiveTimes==0)
 {
+AcBuzzerActiveTimes =1 ;
  PORTC.B2 =1;
 Delay_ms(1000);
  PORTC.B2 =0;
-AcBuzzerActiveTimes =1 ;
 }
 }
 
@@ -396,8 +532,6 @@ void Interrupt_Routine () iv IVT_ADDR_INT0
 
 Delay_ms(100);
 INTF0_bit=1;
-GetVoltageNow();
-Saved_Voltage=v;
 if ( PIND.B2 ==0)
 SetUpProgram();
 LCD_Clear(1,1,16);
@@ -409,29 +543,6 @@ void SetUpProgram()
 {
 Delay_ms(100);
 LCD_CMD(_LCD_CLEAR);
-
-TimerDelay();
-}
-
-void Timer_Delay_Config()
-{
-WGM10_bit=0;
-WGM11_bit=0;
-WGM12_bit=1;
-WGM13_bit=0;
-CS10_bit=1;
-CS11_bit=0;
-CS12_bit=1;
-OCIE1A_bit=1;
-SREG_I_bit=1;
-OCR1AL=0xFF;
-OCR1AH=0xFF;
-}
-
-
-void TimerDelay()
-{
-INTF0_bit=1;
 if ( PIND.B2 ==0)
 {
 LCD_CMD(_LCD_CLEAR);
@@ -439,76 +550,80 @@ LCD_OUT(1,1,"Setup Program");
 Delay_ms(1000);
 
 
-while ( PIND.B2 ==1)
+while ( PIND.B2 ==1 )
 {
 
 SetTimerOn_1();
+if ( PINC.B0 ==1) break;
 SetTimerOff_1();
+if ( PINC.B0 ==1) break;
 SetTimerOn_2();
+if( PINC.B0 ==1) break;
 SetTimerOff_2();
-SetTimerOn_3();
-SetTimerOff_3();
-SetDS1307Hours_Program();
-SetDS1307Minutes_Program();
-SetDS1307Seconds_Program();
-AC_Available_ByPass_System();
+if ( PINC.B0 ==1) break ;
 SetLowBatteryVoltage();
-SetTimer();
-SetHighVoltage();
-SetLowVoltage();
+if ( PINC.B0 ==1) break;
+SetStartUpLoadsVoltage();
+if ( PINC.B0 ==1) break;
 
-EnableVoltageGuard();
+if ( PINC.B0 ==1) break;
+
+if ( PINC.B0 ==1) break;
+SetDS1307_Time();
+
+
+
+
+
+Startup_Timers();
+if( PINC.B0 ==1) break;
+
+
+
+
+LCD_CMD(_LCD_CLEAR);
 
 }
-}
-
-
-else
-{
-
-CS10_bit=0;
-CS11_bit=0;
-CS12_bit=0;
 }
 }
 
 
 void SetTimerOn_1()
 {
-
+LCD_Clear(1,1,16);
 LCD_OUT(1,1,"T1 On: [1]");
-Delay_ms(1000);
+Delay_ms(100);
 LCD_Clear(2,1,16);
 while ( PIND.B2 ==1)
 {
-ByteToStr(hours_lcd_1,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
+#line 597 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 ByteToStr(minutes_lcd_1,txt);
 LCD_OUT(2,6,"M:");
+LCD_OUT(2,1,"H:");
 LCD_Out(2,7,txt);
+
+if ( PINC.B0 ==1)
+{
+LCD_Clear(2,1,16);
+break;
+}
+
 
 while ( PIND.B0  == 1 ||  PIND.B1 ==1)
 {
-ByteToStr(hours_lcd_1,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(minutes_lcd_1,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
-if ( minutes_lcd_1 >=59 || minutes_lcd_1<=0 ) {minutes_lcd_1=0;}
-if ( PIND.B0 ==1)
+if ( PIND.B0 ==1 )
 {
-delay_ms(200);
+delay_ms(ButtonDelay);
 minutes_lcd_1++;
 }
 if ( PIND.B1 ==1)
 {
-delay_ms(200);
+delay_ms(ButtonDelay);
 minutes_lcd_1--;
 }
+
+if (minutes_lcd_1>59) minutes_lcd_1=0;
+if (minutes_lcd_1<0) minutes_lcd_1=0;
 }
 }
 
@@ -516,33 +631,33 @@ Delay_ms(1000);
 while ( PIND.B2 ==1)
 {
 ByteToStr(hours_lcd_1,txt);
+
 LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(minutes_lcd_1,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
+#line 636 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+if ( PINC.B0 ==1)
+{
+LCD_Clear(2,1,16);
+break;
+}
 
 while ( PIND.B0  == 1 ||  PIND.B1 ==1)
 {
-ByteToStr(hours_lcd_1,txt);
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(minutes_lcd_1,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
-if ( hours_lcd_1 >=24 || hours_lcd_1 <=0) {hours_lcd_1=0;}
 if ( PIND.B0 ==1)
 {
-delay_ms(200);
+delay_ms(ButtonDelay);
 hours_lcd_1++;
 }
 if ( PIND.B1 ==1)
 {
-delay_ms(200);
+delay_ms(ButtonDelay);
 hours_lcd_1--;
 }
+
+if (hours_lcd_1>23) hours_lcd_1=0;
+if (hours_lcd_1<0) hours_lcd_1=0;
 }
 }
+
 EEPROM_Write(0x00,hours_lcd_1);
 EEPROM_Write(0x01,minutes_lcd_1);
 }
@@ -552,112 +667,110 @@ void SetTimerOff_1()
 LCD_Clear(1,1,16);
 LCD_OUT(1,1,"T1 Off: [2]");
 LCD_Clear(2,1,16);
+Delay_ms(500);
 while ( PIND.B2 ==1)
 {
-ByteToStr(hours_lcd_2,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
+#line 676 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 ByteToStr(minutes_lcd_2,txt);
 LCD_OUT(2,6,"M:");
+LCD_OUT(2,1,"H:");
 LCD_Out(2,7,txt);
+if ( PINC.B0 ==1)
+{
+LCD_Clear(2,1,16);
+break;
+}
 
 while ( PIND.B0 ==1 ||  PIND.B1 ==1)
 {
-ByteToStr(hours_lcd_2,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(minutes_lcd_2,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
-if ( minutes_lcd_2 >=59 ||minutes_lcd_2<=0 ) {minutes_lcd_2=0;}
+
 if ( PIND.B0 ==1)
 {
-delay_ms(200);
+delay_ms(ButtonDelay);
 minutes_lcd_2++;
 }
 if ( PIND.B1 ==1)
 {
-delay_ms(200);
+delay_ms(ButtonDelay);
 minutes_lcd_2--;
 }
+
+if(minutes_lcd_2>59) minutes_lcd_2=0;
+if (minutes_lcd_2<0) minutes_lcd_2=0;
+
 }
 }
 
-Delay_ms(1000);
+Delay_ms(500);
 while ( PIND.B2 ==1)
 {
 ByteToStr(hours_lcd_2,txt);
-LCD_OUT(2,1,"H:");
+
 LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(minutes_lcd_2,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
+#line 715 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+if ( PINC.B0 ==1)
+{
+LCD_Clear(2,1,16);
+break;
+}
 
 while( PIND.B0 == 1 ||  PIND.B1 ==1)
 {
-ByteToStr(hours_lcd_2,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(minutes_lcd_2,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
-if ( hours_lcd_2 >=24 || hours_lcd_2<=0) {hours_lcd_2=0;}
 if ( PIND.B0 ==1)
 {
-delay_ms(200);
+delay_ms(ButtonDelay);
 hours_lcd_2++;
 }
 if ( PIND.B1 ==1)
 {
-delay_ms(200);
+delay_ms(ButtonDelay);
 hours_lcd_2--;
 }
+if(hours_lcd_2>23) hours_lcd_2=0;
+if (hours_lcd_2<0 ) hours_lcd_2=0;
 }
 }
 EEPROM_Write(0x03,hours_lcd_2);
 EEPROM_Write(0x04,minutes_lcd_2);
 }
 
+
 void SetTimerOn_2()
 {
 LCD_Clear(1,1,16);
 LCD_OUT(1,1,"T2 On: [3]");
-Delay_ms(1000);
+Delay_ms(100);
 LCD_Clear(2,1,16);
 while ( PIND.B2 ==1)
 {
-ByteToStr(hours_lcd_timer2_start,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
+#line 754 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 ByteToStr(minutes_lcd_timer2_start,txt);
 LCD_OUT(2,6,"M:");
+LCD_OUT(2,1,"H:");
 LCD_Out(2,7,txt);
 
-while ( PIND.B0 ==1 ||  PIND.B1 ==1)
+if ( PINC.B0 ==1)
 {
-ByteToStr(hours_lcd_timer2_start,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(minutes_lcd_timer2_start,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
-if ( minutes_lcd_timer2_start >=59 ||minutes_lcd_timer2_start<=0 ) {minutes_lcd_timer2_start=0;}
-if ( PIND.B0 ==1)
+LCD_Clear(2,1,16);
+break;
+}
+
+
+while ( PIND.B0  == 1 ||  PIND.B1 ==1)
 {
-delay_ms(200);
+if ( PIND.B0 ==1 )
+{
+delay_ms(ButtonDelay);
 minutes_lcd_timer2_start++;
 }
-if ( PIND.B1 ==1)
+if ( PIND.B1 ==1 )
 {
-delay_ms(200);
+delay_ms(ButtonDelay);
 minutes_lcd_timer2_start--;
 }
+
+if (minutes_lcd_timer2_start>59) minutes_lcd_timer2_start=0;
+if (minutes_lcd_timer2_start<0) minutes_lcd_timer2_start=0;
 }
 }
 
@@ -665,698 +778,594 @@ Delay_ms(1000);
 while ( PIND.B2 ==1)
 {
 ByteToStr(hours_lcd_timer2_start,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(minutes_lcd_timer2_start,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
 
-while ( PIND.B0 ==1 ||  PIND.B1 ==1)
-{
-ByteToStr(hours_lcd_timer2_start,txt);
-LCD_OUT(2,1,"H:");
 LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(minutes_lcd_timer2_start,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
-if ( hours_lcd_timer2_start >=24 || hours_lcd_timer2_start<=0 ) {hours_lcd_timer2_start=0;}
+#line 794 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+if ( PINC.B0 ==1)
+{
+break;
+}
+
+while ( PIND.B0  == 1 ||  PIND.B1 ==1)
+{
 if ( PIND.B0 ==1)
 {
-delay_ms(200);
+delay_ms(ButtonDelay);
 hours_lcd_timer2_start++;
 }
 if ( PIND.B1 ==1)
 {
-delay_ms(200);
+delay_ms(ButtonDelay);
 hours_lcd_timer2_start--;
 }
+
+if (hours_lcd_timer2_start>23) hours_lcd_timer2_start=0;
+if (hours_lcd_timer2_start<0) hours_lcd_timer2_start=0;
 }
 }
+
 EEPROM_Write(0x18,hours_lcd_timer2_start);
 EEPROM_Write(0x19,minutes_lcd_timer2_start);
 }
-
 
 void SetTimerOff_2()
 {
 LCD_Clear(1,1,16);
 LCD_OUT(1,1,"T2 Off: [4]");
 LCD_Clear(2,1,16);
-Delay_ms(1000);
+Delay_ms(500);
 while ( PIND.B2 ==1)
 {
-ByteToStr(hours_lcd_timer2_stop,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
+#line 833 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 ByteToStr(minutes_lcd_timer2_stop,txt);
 LCD_OUT(2,6,"M:");
+LCD_OUT(2,1,"H:");
 LCD_Out(2,7,txt);
+if ( PINC.B0 ==1) break;
 
 while ( PIND.B0 ==1 ||  PIND.B1 ==1)
 {
-
-ByteToStr(hours_lcd_timer2_stop,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(minutes_lcd_timer2_stop,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
-if ( minutes_lcd_timer2_stop >=59 || minutes_lcd_timer2_stop<=0 ) {minutes_lcd_timer2_stop=0;}
 if ( PIND.B0 ==1)
 {
-delay_ms(200);
+delay_ms(ButtonDelay);
 minutes_lcd_timer2_stop++;
 }
 if ( PIND.B1 ==1)
 {
-delay_ms(200);
+delay_ms(ButtonDelay);
 minutes_lcd_timer2_stop--;
 }
+
+if(minutes_lcd_timer2_stop>59) minutes_lcd_timer2_stop=0;
+if (minutes_lcd_timer2_stop<0) minutes_lcd_timer2_stop=0;
+
 }
 }
 
-Delay_ms(1000);
+Delay_ms(500);
 while ( PIND.B2 ==1)
 {
 ByteToStr(hours_lcd_timer2_stop,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(minutes_lcd_timer2_stop,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
 
-while ( PIND.B0 ==1 ||  PIND.B1 ==1)
-{
-ByteToStr(hours_lcd_timer2_stop,txt);
-LCD_OUT(2,1,"H:");
 LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(minutes_lcd_timer2_stop,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
-if ( hours_lcd_timer2_stop >=24 ||hours_lcd_timer2_stop<=0 ) {hours_lcd_timer2_stop=0;}
+#line 868 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+if ( PINC.B0 ==1)
+{
+LCD_Clear(2,1,16);
+break;
+}
+
+while( PIND.B0 == 1 ||  PIND.B1 ==1)
+{
 if ( PIND.B0 ==1)
 {
-delay_ms(200);
+delay_ms(ButtonDelay);
 hours_lcd_timer2_stop++;
 }
 if ( PIND.B1 ==1)
 {
-delay_ms(200);
+delay_ms(ButtonDelay);
 hours_lcd_timer2_stop--;
 }
+if(hours_lcd_timer2_stop>23) hours_lcd_timer2_stop=0;
+if (hours_lcd_timer2_stop<0 ) hours_lcd_timer2_stop=0;
 }
 }
 EEPROM_Write(0x20,hours_lcd_timer2_stop);
 EEPROM_Write(0x21,minutes_lcd_timer2_stop);
 }
 
-void SetTimerOn_3()
+
+
+void SetDS1307_Time()
 {
 LCD_Clear(1,1,16);
-LCD_OUT(1,1,"T3 On: [5]");
-LCD_Clear(2,1,16);
-Delay_ms(1000);
-while( PIND.B2 ==1)
-{
-ByteToStr(hours_lcd_timer3_start,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(minutes_lcd_timer3_start,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
-while( PIND.B0 ==1 ||  PIND.B1 ==1 )
-{
+LCD_OUT(1,1,"Set Time[H] [9]");
+Delay_ms(500);
+set_ds1307_minutes=ReadMinutes();
+set_ds1307_hours=ReadHours();
 
-ByteToStr(hours_lcd_timer3_start,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(minutes_lcd_timer3_start,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
-if ( minutes_lcd_timer3_start >=60 || minutes_lcd_timer3_start <=0 ) {minutes_lcd_timer3_start=0;}
-if ( PIND.B0 ==1)
-{
-delay_ms(200);
-minutes_lcd_timer3_start++;
-}
-if ( PIND.B1 ==1)
-{
-delay_ms(200);
-minutes_lcd_timer3_start--;
-}
-}
-}
-
-
-Delay_ms(1000);
-while( PIND.B2 ==1)
-{
-ByteToStr(hours_lcd_timer3_start,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(minutes_lcd_timer3_start,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
-while( PIND.B0 ==1 ||  PIND.B1 ==1 )
-{
-ByteToStr(hours_lcd_timer3_start,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(minutes_lcd_timer3_start,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
-if ( hours_lcd_timer3_start >=24 || hours_lcd_timer3_start <=0 ) {hours_lcd_timer3_start=0;}
-if ( PIND.B0 ==1)
-{
-delay_ms(200);
-hours_lcd_timer3_start++;
-}
-if ( PIND.B1 ==1)
-{
-delay_ms(200);
-hours_lcd_timer3_start--;
-}
-}
-}
-EEPROM_Write(0x22,hours_lcd_timer3_start);
-EEPROM_Write(0x23,minutes_lcd_timer3_start);
-}
-
-void SetTimerOff_3()
-{
-LCD_Clear(1,1,16);
-LCD_OUT(1,1,"T3 Off: [6]");
-LCD_Clear(2,1,16);
-Delay_ms(1000);
-while ( PIND.B2 ==1)
-{
-ByteToStr(hours_lcd_timer3_stop,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(minutes_lcd_timer3_stop,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
-
-while ( PIND.B0 ==1 ||  PIND.B1 ==1)
-{
-
-ByteToStr(hours_lcd_timer3_stop,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(minutes_lcd_timer3_stop,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
-if ( minutes_lcd_timer3_stop >=59 || minutes_lcd_timer3_stop<=0 ) {minutes_lcd_timer3_stop=0;}
-if ( PIND.B0 ==1)
-{
-delay_ms(200);
-minutes_lcd_timer3_stop++;
-}
-if ( PIND.B1 ==1)
-{
-delay_ms(200);
-minutes_lcd_timer3_stop--;
-}
-}
-}
-
-
-Delay_ms(1000);
-while ( PIND.B2 ==1)
-{
-ByteToStr(hours_lcd_timer3_stop,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(minutes_lcd_timer3_stop,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
-
-while ( PIND.B0 ==1 ||  PIND.B1 ==1)
-{
-
-ByteToStr(hours_lcd_timer3_stop,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(minutes_lcd_timer3_stop,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
-if ( hours_lcd_timer3_stop >=23 || hours_lcd_timer3_stop<=0 ) {hours_lcd_timer3_stop=0;}
-if ( PIND.B0 ==1)
-{
-delay_ms(200);
-hours_lcd_timer3_stop++;
-}
-if ( PIND.B1 ==1)
-{
-delay_ms(200);
-hours_lcd_timer3_stop--;
-}
-}
-}
-
-EEPROM_Write(0x25,minutes_lcd_timer3_stop);
-EEPROM_Write(0x24,hours_lcd_timer3_stop);
-}
-
-void SetDS1307Hours_Program()
-{
-LCD_Clear(1,1,16);
-LCD_OUT(1,1,"Set Time:[H] [7]");
-Delay_ms(1000);
 while ( PIND.B2 ==1)
 {
 ByteToStr(set_ds1307_hours,txt);
 LCD_OUT(2,1,"H:");
 LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
+
 ByteToStr(set_ds1307_minutes,txt);
 LCD_OUT(2,6,"M:");
 LCD_Out(2,7,txt);
-LCD_Chr_Cp('-');
+
 ByteToStr(set_ds1307_seconds,txt);
 LCD_OUT(2,12,"S:");
 LCD_Out(2,13,txt);
+if ( PINC.B0 ==1) break;
 while ( PIND.B0 ==1 ||  PIND.B1 ==1 )
 {
-ByteToStr(set_ds1307_hours,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(set_ds1307_minutes,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
-LCD_Chr_Cp('-');
-ByteToStr(set_ds1307_seconds,txt);
-LCD_OUT(2,12,"S:");
-LCD_Out(2,13,txt);
-if ( set_ds1307_hours >=23 ) {set_ds1307_hours=0;}
 if ( PIND.B0 ==1)
 {
-delay_ms(200);
+delay_ms(ButtonDelay);
 set_ds1307_hours++;
 
 }
 if ( PIND.B1 ==1)
 {
-delay_ms(200);
+delay_ms(ButtonDelay);
 set_ds1307_hours--;
 }
-}
+if(set_ds1307_hours>23) set_ds1307_hours=0;
+if (set_ds1307_hours<0) set_ds1307_hours=0;
 }
 }
 
-void SetDS1307Minutes_Program()
-{
+Delay_ms(500);
 LCD_Clear(1,1,16);
-LCD_OUT(1,1,"Set Time:[M] [8]");
-Delay_ms(1000);
+LCD_OUT(1,1,"Set Time[M] [10]");
+Delay_ms(500);
 while ( PIND.B2 ==1)
 {
-ByteToStr(set_ds1307_hours,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
 ByteToStr(set_ds1307_minutes,txt);
-LCD_OUT(2,6,"M:");
+
 LCD_Out(2,7,txt);
-LCD_Chr_Cp('-');
-ByteToStr(set_ds1307_seconds,txt);
-LCD_OUT(2,12,"S:");
-LCD_Out(2,13,txt);
+
+if ( PINC.B0 ==1) break;
 while ( PIND.B0 ==1 ||  PIND.B1 ==1)
 {
-ByteToStr(set_ds1307_hours,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(set_ds1307_minutes,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
-LCD_Chr_Cp('-');
-ByteToStr(set_ds1307_seconds,txt);
-LCD_OUT(2,12,"S:");
-LCD_Out(2,13,txt);
-if ( set_ds1307_minutes >59 ) {set_ds1307_minutes=0;}
 if ( PIND.B0 ==1)
 {
-delay_ms(200);
+delay_ms(ButtonDelay);
 set_ds1307_minutes++;
-
 }
+
 if ( PIND.B1 ==1)
 {
-delay_ms(200);
+delay_ms(ButtonDelay);
 set_ds1307_minutes--;
 }
-}
+if(set_ds1307_minutes>59) set_ds1307_minutes=0;
+if(set_ds1307_minutes<0) set_ds1307_minutes=0;
 }
 }
 
-void SetDS1307Seconds_Program()
-{
+Delay_ms(500);
 LCD_Clear(1,1,16);
-LCD_OUT(1,1,"Set Time:[S] [9]");
-Delay_ms(1000);
+LCD_OUT(1,1,"Set Time[S] [11]");
+Delay_ms(500);
 while ( PIND.B2 ==1)
 {
-ByteToStr(set_ds1307_hours,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(set_ds1307_minutes,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
-LCD_Chr_Cp('-');
 ByteToStr(set_ds1307_seconds,txt);
-LCD_OUT(2,12,"S:");
+
 LCD_Out(2,13,txt);
+if ( PINC.B0 ==1) break;
 while( PIND.B0 ==1 ||  PIND.B1 ==1)
 {
-ByteToStr(set_ds1307_hours,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(set_ds1307_minutes,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
-LCD_Chr_Cp('-');
-ByteToStr(set_ds1307_seconds,txt);
-LCD_OUT(2,12,"S:");
-LCD_Out(2,13,txt);
-if ( set_ds1307_seconds >59 ) {set_ds1307_seconds=0;}
 if ( PIND.B0 ==1)
 {
-delay_ms(200);
+delay_ms(ButtonDelay);
 set_ds1307_seconds++;
-
 }
 if ( PIND.B1 ==1)
 {
-delay_ms(200);
+delay_ms(ButtonDelay);
 set_ds1307_seconds--;
 }
+if (set_ds1307_seconds>59) set_ds1307_seconds=0;
+if (set_ds1307_seconds<0) set_ds1307_seconds=0;
 
 
 Write_Time(Dec2Bcd(set_ds1307_seconds),Dec2Bcd(set_ds1307_minutes),Dec2Bcd(set_ds1307_hours));
 }
 }
-}
 
-void AC_Available_ByPass_System()
-{
-
-LCD_OUT(1,1,"ByPass Grid: [10]");
 Delay_ms(1000);
-LCD_Clear(2,1,16);
+LCD_Clear(1,1,16);
+LCD_CLear(2,1,16);
+LCD_OUT(1,1,"Set Date[D] [12]");
 
-
-if (ByPassState==0) LCD_OUT(2,1,"Enabled"); else LCD_OUT(2,1,"Disabled");
+set_ds1307_day=ReadDate(0x04);
+Delay_ms(500);
 while ( PIND.B2 ==1)
 {
-if (ByPassState==0) LCD_OUT(2,1,"Enabled"); else LCD_OUT(2,1,"Disabled");
-
-while ( PIND.B0  == 1 ||  PIND.B1 ==1)
+ByteToStr(set_ds1307_day,txt);
+LCD_OUT(2,1,"D:");
+LCD_OUT(2,6,"M:");
+LCD_OUT(2,12,"Y:");
+LCD_Out(2,3,txt);
+if ( PINC.B0 ==1) break;
+while( PIND.B0 ==1 ||  PIND.B1 ==1)
 {
-if ( PIND.B0 ==1) ByPassState=1;
-if ( PIND.B1 ==1) ByPassState=0;
+if ( PIND.B0 ==1)
+{
+delay_ms(ButtonDelay);
+set_ds1307_day++;
+}
+if ( PIND.B1 ==1)
+{
+delay_ms(ButtonDelay);
+set_ds1307_day--;
+}
+if (set_ds1307_day>31) set_ds1307_day=0;
+if (set_ds1307_day<0) set_ds1307_day=0;
+}
+}
+
+Delay_ms(1000);
+LCD_Clear(1,1,16);
+
+
+set_ds1307_month=ReadDate(0x05);
+Delay_ms(500);
+while ( PIND.B2 ==1)
+{
+ByteToStr(set_ds1307_month,txt);
+LCD_Out(2,8,txt);
+if ( PINC.B0 ==1) break;
+while( PIND.B0 ==1 ||  PIND.B1 ==1)
+{
+if ( PIND.B0 ==1)
+{
+delay_ms(ButtonDelay);
+set_ds1307_month++;
 
 }
+if ( PIND.B1 ==1)
+{
+delay_ms(ButtonDelay);
+set_ds1307_month--;
 }
-EEPROM_Write(0x06,ByPassState);
-LCD_CMD(_LCD_CLEAR);
+if (set_ds1307_month>12) set_ds1307_month=0;
+if (set_ds1307_month<0) set_ds1307_month=0;
+}
 }
 
+Delay_ms(1000);
+LCD_Clear(1,1,16);
+
+
+set_ds1307_year=ReadDate(0x06);
+Delay_ms(500);
+while ( PIND.B2 ==1)
+{
+ByteToStr(set_ds1307_year,txt);
+LCD_Out(2,14,txt);
+if ( PINC.B0 ==1) break;
+while( PIND.B0 ==1 ||  PIND.B1 ==1)
+{
+if ( PIND.B0 ==1)
+{
+delay_ms(ButtonDelay);
+set_ds1307_year++;
+
+}
+if ( PIND.B1 ==1)
+{
+delay_ms(ButtonDelay);
+set_ds1307_year--;
+}
+if (set_ds1307_year>99) set_ds1307_year=0;
+if (set_ds1307_year<0) set_ds1307_year=0;
+
+}
+Write_Date(Dec2Bcd(set_ds1307_day),Dec2Bcd(set_ds1307_month),Dec2Bcd(set_ds1307_year));
+}
+}
+#line 1179 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 void SetLowBatteryVoltage()
 {
-LCD_OUT(1,1,"Low Battery: [11]");
-Delay_ms(1000);
+LCD_OUT(1,1,"Low Battery  [5]");
+Delay_ms(500);
 LCD_Clear(2,1,16);
 while( PIND.B2 ==1)
 {
-sprintf(txt,"%4.1f",Mini_Battery_Voltage);
-LCD_OUT(2,1,txt);
-LCD_OUT(2,5,"V");
+LCD_OUT(2,1,"T1");
+sprintf(txt,"%4.1fV",Mini_Battery_Voltage);
+LCD_OUT(2,4,txt);
+
+if ( PINC.B0 ==1) break;
 while ( PIND.B0 ==1 ||  PIND.B1 ==1)
 {
-sprintf(txt,"%4.1f",Mini_Battery_Voltage);
-LCD_OUT(2,1,txt);
-LCD_OUT(2,5,"V");
-if(Mini_Battery_Voltage> 65 ) Mini_Battery_Voltage=0.0;
-
 if ( PIND.B0 ==1)
 {
-Delay_ms(200);
+Delay_ms(ButtonDelay);
 Mini_Battery_Voltage+=0.1;
 
 }
 if ( PIND.B1 ==1)
 {
-Delay_ms(200);
+Delay_ms(ButtonDelay);
 Mini_Battery_Voltage-=0.1;
 }
+if (Mini_Battery_Voltage>65) Mini_Battery_Voltage=0;
+if (Mini_Battery_Voltage<0) Mini_Battery_Voltage=0;
 }
 }
+
 Delay_ms(1000);
-StoreBytesIntoEEprom(0x07,(unsigned short *)&Mini_Battery_Voltage,4);
-LCD_CMD(_LCD_CLEAR);
-}
-
-void SetTimer()
+while( PIND.B2 ==1)
 {
-LCD_OUT(1,1,"Timer State:[12]");
-Delay_ms(1000);
-LCD_Clear(2,1,16);
-while ( PIND.B2 ==1)
-{
-LCD_OUT(1,1,"Timer : [10]");
-if (Timer_Enable==0) {LCD_OUT(2,1,"Disabled");} else {LCD_OUT(2,1,"Enabled");}
-while( PIND.B0  == 1 ||  PIND.B1  == 1 )
-{
+LCD_OUT(2,1,"T2");
+sprintf(txt,"%4.1fV",Mini_Battery_Voltage_T2);
+LCD_OUT(2,4,txt);
 
-
-if (Timer_Enable==0) {LCD_OUT(2,1,"Disabled");} else {LCD_OUT(2,1,"Enabled");}
+if ( PINC.B0 ==1) break;
+while ( PIND.B0 ==1 ||  PIND.B1 ==1)
+{
 if ( PIND.B0 ==1)
 {
-delay_ms(200);
-Timer_Enable=1;
+Delay_ms(ButtonDelay);
+Mini_Battery_Voltage_T2+=0.1;
+
 }
 if ( PIND.B1 ==1)
 {
-delay_ms(200);
-Timer_Enable=0;
+Delay_ms(ButtonDelay);
+Mini_Battery_Voltage_T2-=0.1;
+}
+if (Mini_Battery_Voltage_T2>65) Mini_Battery_Voltage_T2=0;
+if (Mini_Battery_Voltage_T2<0) Mini_Battery_Voltage_T2=0;
 }
 }
+StoreBytesIntoEEprom(0x30,(unsigned short *)&Mini_Battery_Voltage,4);
+StoreBytesIntoEEprom(0x51,(unsigned short *)&Mini_Battery_Voltage_T2,4);
+LCD_CMD(_LCD_CLEAR);
 }
-EEPROM_Write(0x11,Timer_Enable);
+
+void SetStartUpLoadsVoltage()
+{
+LCD_OUT(1,1,"Start Loads V[6]");
+Delay_ms(500);
+LCD_Clear(2,1,16);
+while( PIND.B2 ==1)
+{
+LCD_OUT(2,1,"T1");
+sprintf(txt,"%4.1fV",StartLoadsVoltage);
+LCD_OUT(2,4,txt);
+
+if ( PINC.B0 ==1) break;
+while ( PIND.B0 ==1 ||  PIND.B1 ==1)
+{
+if ( PIND.B0 ==1)
+{
+Delay_ms(ButtonDelay);
+StartLoadsVoltage+=0.1;
+
+}
+if ( PIND.B1 ==1)
+{
+Delay_ms(ButtonDelay);
+StartLoadsVoltage-=0.1;
+}
+if (StartLoadsVoltage>65) StartLoadsVoltage=0;
+if (StartLoadsVoltage<0) StartLoadsVoltage=0;
+}
+}
+
+Delay_ms(1000);
+while( PIND.B2 ==1)
+{
+LCD_OUT(2,1,"T2");
+sprintf(txt,"%4.1fV",StartLoadsVoltage_T2);
+LCD_OUT(2,4,txt);
+
+if ( PINC.B0 ==1) break;
+while ( PIND.B0 ==1 ||  PIND.B1 ==1)
+{
+
+
+
+if ( PIND.B0 ==1)
+{
+Delay_ms(ButtonDelay);
+StartLoadsVoltage_T2+=0.1;
+
+}
+if ( PIND.B1 ==1)
+{
+Delay_ms(ButtonDelay);
+StartLoadsVoltage_T2-=0.1;
+}
+if (StartLoadsVoltage_T2>65) StartLoadsVoltage_T2=0;
+if (StartLoadsVoltage_T2<0) StartLoadsVoltage_T2=0;
+}
+}
+StoreBytesIntoEEprom(0x40,(unsigned short *)&StartLoadsVoltage,4);
+StoreBytesIntoEEprom(0x55,(unsigned short *)&StartLoadsVoltage_T2,4);
+
 LCD_CMD(_LCD_CLEAR);
 }
 
 void SetHighVoltage()
 {
-LCD_OUT(1,1,"High Volt: [13]");
-Delay_ms(1000);
+LCD_OUT(1,1,"High AC Volt [7]");
+Delay_ms(500);
 LCD_Clear(2,1,16);
 while( PIND.B2 ==1)
 {
 IntToStr(High_Voltage,txt);
 LCD_OUT(2,1,txt);
+if ( PINC.B0 ==1) break;
 while( PIND.B0 ==1 ||  PIND.B1 ==1)
 {
 IntToStr(High_Voltage,txt);
 LCD_OUT(2,1,txt);
 if ( PIND.B0 ==1)
 {
-Delay_ms(200);
+Delay_ms(ButtonDelay);
 High_Voltage++;
 }
 if( PIND.B1 ==1)
 {
-Delay_ms(200);
+Delay_ms(ButtonDelay);
 High_Voltage--;
 }
+ if(High_Voltage > 255 ) High_Voltage=0;
+ if (High_Voltage < 0 ) High_Voltage=0;
 }
 }
 EEPROM_Write(0x12,High_Voltage);
+LCD_CMD(_LCD_CLEAR);
 }
 
 void SetLowVoltage()
 {
-LCD_OUT(1,1,"Low Volt: [14]");
-Delay_ms(1000);
+LCD_OUT(1,1,"Low AC Volt [8]");
+Delay_ms(500);
 LCD_Clear(2,1,16);
 while( PIND.B2 ==1)
 {
 IntToStr(Low_Voltage,txt);
 LCD_OUT(2,1,txt);
+if ( PINC.B0 ==1) break;
 while( PIND.B0 ==1 ||  PIND.B1 ==1)
 {
 IntToStr(Low_Voltage,txt);
 LCD_OUT(2,1,txt);
 if ( PIND.B0 ==1)
 {
-Delay_ms(200);
+Delay_ms(ButtonDelay);
 Low_Voltage++;
 }
 if( PIND.B1 ==1)
 {
-Delay_ms(200);
+Delay_ms(ButtonDelay);
 Low_Voltage--;
 }
+ if(Low_Voltage > 255 ) Low_Voltage=0;
+ if (Low_Voltage < 0 ) Low_Voltage=0;
 }
 }
 LCD_Clear(1,1,16);
 EEPROM_Write(0x13,Low_Voltage);
+LCD_CMD(_LCD_CLEAR);
 }
 
-void EnableBatteryGuard()
+
+
+void Startup_Timers()
 {
-LCD_OUT(1,1,"Batt Guard:[15]");
-Delay_ms(1000);
+LCD_OUT(1,1,"Start Loads [15]");
+Delay_ms(500);
 LCD_Clear(2,1,16);
 while( PIND.B2 ==1)
 {
-if(BatteryGuardEnable==1) LCD_OUT(2,1,"Enabled"); if(BatteryGuardEnable==0) LCD_OUT(2,1,"Disabled");
+IntToStr(startupTIme_1,txt);
+LCD_OUT(2,1,"T1");
+
+LCD_OUT(2,5,txt);
+if( PINC.B0 ==1) break ;
 while( PIND.B0 ==1 ||  PIND.B1 ==1)
 {
-if(BatteryGuardEnable==1) LCD_OUT(2,1,"Enabled"); if(BatteryGuardEnable==0) LCD_OUT(2,1,"Disabled");
-if ( PIND.B0 ==1)
-{
-Delay_ms(200);
-BatteryGuardEnable=1;
-}
-if( PIND.B1 ==1)
-{
-Delay_ms(200);
-BatteryGuardEnable=0;
-}
-
-}
-}
-LCD_Clear(1,1,16);
-EEPROM_Write(0x14,BatteryGuardEnable);
-}
-
-void EnableVoltageGuard()
-{
-LCD_OUT(1,1,"Volt Prot: [16]");
-Delay_ms(1000);
-LCD_Clear(2,1,16);
-while( PIND.B2 ==1)
-{
-if(VoltageProtectionEnable==1) LCD_OUT(2,1,"Enabled"); if(VoltageProtectionEnable==0) LCD_OUT(2,1,"Disabled");
-while ( PIND.B0 ==1 ||  PIND.B1 ==1)
-{
-if(VoltageProtectionEnable==1) LCD_OUT(2,1,"Enabled"); if(VoltageProtectionEnable==0) LCD_OUT(2,1,"Disabled");
-if ( PIND.B0 ==1)
-{
-Delay_ms(200);
-VoltageProtectionEnable=1;
-}
-if( PIND.B1 ==1)
-{
-Delay_ms(200);
-VoltageProtectionEnable=0;
-}
-
-}
-}
-LCD_Clear(1,1,16);
-EEPROM_Write(0x15,VoltageProtectionEnable);
-}
-
-
-void SetACVoltageError()
-{
-LCD_OUT(1,1,"Volt Error: [17]");
-Delay_ms(1000);
-LCD_Clear(2,1,16);
-while ( PIND.B2 ==1)
-{
-IntToStr(Adjusted_Voltage,txt);
-LCD_OUT(2,1,txt);
-while( PIND.B0 ==1 ||  PIND.B1  == 1 )
-{
-IntToStr(Adjusted_Voltage,txt);
-LCD_OUT(2,1,txt);
-if(Adjusted_Voltage <= 0 ) Adjusted_Voltage=0;
 if( PIND.B0 ==1)
 {
-Delay_ms(200);
-Adjusted_Voltage++;
+Delay_ms(ButtonDelay);
+startupTIme_1++;
 }
 if( PIND.B1 ==1)
 {
-Delay_ms(200);
-Adjusted_Voltage--;
+Delay_ms(ButtonDelay);
+startupTIme_1--;
 }
+if(startupTIme_1 > 600 ) startupTIme_1=0;
+if (startupTIme_1<0) startupTIme_1=0;
 }
-}
-LCD_Clear(1,1,16);
-LCD_Clear(2,1,16);
-Error_Voltage=Adjusted_Voltage-Saved_Voltage;
-EEPROM_Write(0x16,Error_Voltage);
-EEPROM_Write(0x17,Adjusted_Voltage);
 }
 
+Delay_ms(1000);
+while ( PIND.B2 ==1)
+{
+IntToStr(startupTIme_2,txt);
+LCD_OUT(2,1,"T2");
+
+LCD_OUT(2,5,txt);
+if( PINC.B0 ==1) break ;
+while( PIND.B0 ==1 ||  PIND.B1 ==1)
+{
+if( PIND.B0 ==1)
+{
+Delay_ms(ButtonDelay);
+startupTIme_2++;
+}
+if( PIND.B1 ==1)
+{
+Delay_ms(ButtonDelay);
+startupTIme_2--;
+}
+if(startupTIme_2 > 600 ) startupTIme_2=0;
+if (startupTIme_2<0) startupTIme_2=0;
+}
+}
+
+StoreBytesIntoEEprom(0x45,(unsigned short *)&startupTIme_1,2);
+StoreBytesIntoEEprom(0x47,(unsigned short *)&startupTIme_2,2);
+LCD_CMD(_LCD_CLEAR);
+
+
+}
+#line 1457 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
 void Screen_1()
 {
+
+
 Read_Time();
 Read_Battery();
 CalculateAC();
-DisplayTimerActivation();
 }
 
 void ADCBattery()
 {
 ADC_Init();
 ADC_Init_Advanced(_ADC_EXTERNAL_REF);
+ADPS2_Bit=1;
+ADPS1_Bit=1;
+ADPS0_Bit=0;
 }
 
 void Read_Battery()
 {
 ADC_Value=ADC_Read(1);
-Battery_Voltage=(ADC_Value*5.0)/1024.0;
+Battery_Voltage=(ADC_Value *5.0)/1024.0;
 
 
-
-Vin_Battery=((103.653/4.653)*Battery_Voltage)+0.3;
-
+Vin_Battery=((10.5/0.5)*Battery_Voltage);
+LCD_OUT(2,1,"V=");
 sprintf(txt,"%4.1f",Vin_Battery);
-LCD_OUT(2,1,txt);
+LCD_OUT(2,3,txt);
+
 }
+
 
 void LowBatteryVoltageAlarm()
 {
-
-if (Vin_Battery<Mini_Battery_Voltage)
+if (Vin_Battery<Mini_Battery_Voltage && RunWithOutBattery== 0  && (Timer_isOn==1 || Timer_2_isOn==1) )
 {
- PORTD.B4 =0;
  PORTC.B2 =1;
-Delay_ms(300);
+Delay_ms(500);
  PORTC.B2 =0;
-Delay_ms(300);
+Delay_ms(500);
 }
-
 }
-
 
 unsigned int ReadAC()
 {
-
 unsigned int r;
 unsigned int max_v=0;
 char i=0;
@@ -1372,11 +1381,6 @@ return max_v;
 void CalculateAC()
 {
 char buf[15];
-
-
-
-
-
 v=ReadAC();
 v=v*5.0/1024.0;
 v=255.5*v;
@@ -1391,22 +1395,16 @@ LCD_OUT(2,9,buf);
 }
 else
 {
-LCD_OUT(2,9,"   ");
+
 }
 VoltageProtector(v);
-#line 1445 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Auto Switcher/MikroC/Solar_Auto_Switcher.c"
 }
 
-void DisplayTimerActivation()
-{
-if (Timer_Enable==1) LCD_OUT(1,15,"T");
-if(Timer_Enable==0) LCD_OUT(1,15," ");
-}
+
 
 void VoltageProtector(unsigned long voltage)
 {
-if(VoltageProtectionEnable==1)
-{
+
 if ((voltage < Low_Voltage || voltage> High_Voltage )&&  PIND.B3 ==0 )
 {
 VoltageProtectorGood=0;
@@ -1417,22 +1415,369 @@ if ((voltage>Low_Voltage && voltage < High_Voltage) &&  PIND.B3 ==0)
 VoltageProtectorGood=1;
 }
 }
+
+void ErrorList()
+ {
+#line 1563 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+if(VoltageProtectorGood==0 &&  PIND.B3 ==0) {LCD_OUT(1,16,"2");} else {LCD_OUT(2,16," ");}
+
+ }
+
+
+void Start_Timer_0_A()
+{
+WGM00_bit=0;
+WGM01_bit=0;
+WGM02_bit=0;
+CS00_bit=1;
+CS02_bit=1;
+SREG_I_Bit=1;
+OCR0A=0xFF;
+OCIE0A_Bit=1;
+}
+
+void Interupt_Timer_0_A_OFFTime() iv IVT_ADDR_TIMER0_COMPA
+{
+SREG_I_Bit=0;
+Timer_Counter_3++;
+Timer_Counter_4++;
+Timer_Counter_For_Grid_Turn_Off++;
+
+
+if (Timer_Counter_3==500)
+{
+
+if(Vin_Battery<Mini_Battery_Voltage &&  PIND.B3 ==1)
+{
+SecondsRealTime=0;
+Delay_ms(500);
+ PORTD.B6 =0;
+LCD_CLEAR(2,7,16);
+}
+Timer_Counter_3=0;
+Stop_Timer_0();
 }
 
 
+if (Timer_Counter_4==500)
+{
+
+if(Vin_Battery<Mini_Battery_Voltage_T2 &&  PIND.B3 ==1)
+{
+SecondsRealTime=0;
+Delay_ms(500);
+ PORTD.B7 =0;
+LCD_CLEAR(2,7,16);
+}
+Timer_Counter_4=0;
+Stop_Timer_0();
+}
+
+
+
+if (Timer_Counter_For_Grid_Turn_Off==1000)
+{
+if(VoltageProtectorGood==0 &&  PIND.B3 ==0)
+{
+SecondsRealTime=0;
+ PORTD.B6 =0;
+ PORTD.B7 =0;
+LCD_CLEAR(2,7,16);
+}
+Timer_Counter_For_Grid_Turn_Off=0;
+Stop_Timer_0();
+}
+
+SREG_I_Bit=1;
+OCF0A_Bit=1;
+}
+
+void Stop_Timer_0()
+{
+CS00_bit=0;
+CS01_bit=0;
+CS02_bit=0;
+}
+
+
+void EEPROM_FactorySettings(char period)
+{
+if(period==1)
+{
+Mini_Battery_Voltage=24.5,
+StartLoadsVoltage=26.5,
+startupTIme_1 =180,
+startupTIme_2=240,
+Mini_Battery_Voltage_T2=25.5,
+StartLoadsVoltage_T2=27.5;
+
+EEPROM_Write(0x00,8);
+EEPROM_Write(0x01,0);
+EEPROM_Write(0x03,17);
+EEPROM_Write(0x04,0);
+
+EEPROM_Write(0x18,9);
+EEPROM_Write(0x19,0);
+EEPROM_Write(0x20,17);
+EEPROM_Write(0x21,0);
+
+StoreBytesIntoEEprom(0x30,(unsigned short *)&Mini_Battery_Voltage,4);
+StoreBytesIntoEEprom(0x40,(unsigned short *)&StartLoadsVoltage,4);
+StoreBytesIntoEEprom(0x45,(unsigned short *)&startupTIme_1,2);
+StoreBytesIntoEEprom(0x47,(unsigned short *)&startupTIme_2,2);
+StoreBytesIntoEEprom(0x51,(unsigned short *)&Mini_Battery_Voltage_T2,4);
+StoreBytesIntoEEprom(0x55,(unsigned short *)&StartLoadsVoltage_T2,4);
+}
+if (period==0)
+{
+Mini_Battery_Voltage=24.5,
+StartLoadsVoltage=26.5,
+startupTIme_1 =180,
+startupTIme_2=240,
+Mini_Battery_Voltage_T2=25.5,
+StartLoadsVoltage_T2=2.5;
+
+EEPROM_Write(0x00,9);
+EEPROM_Write(0x01,0);
+EEPROM_Write(0x03,15);
+EEPROM_Write(0x04,0);
+
+EEPROM_Write(0x18,9);
+EEPROM_Write(0x19,30);
+EEPROM_Write(0x20,15);
+EEPROM_Write(0x21,0);
+
+StoreBytesIntoEEprom(0x30,(unsigned short *)&Mini_Battery_Voltage,4);
+StoreBytesIntoEEprom(0x40,(unsigned short *)&StartLoadsVoltage,4);
+StoreBytesIntoEEprom(0x45,(unsigned short *)&startupTIme_1,2);
+StoreBytesIntoEEprom(0x47,(unsigned short *)&startupTIme_2,2);
+StoreBytesIntoEEprom(0x51,(unsigned short *)&Mini_Battery_Voltage_T2,4);
+StoreBytesIntoEEprom(0x55,(unsigned short *)&StartLoadsVoltage_T2,4);
+}
+
+EEPROM_Write(0x12,255);
+EEPROM_Write(0x13,170);
+EEPROM_Write(0x49,0);
+EEPROM_Write(0x50,0);
+}
+
+RunTimersNowCheck()
+{
+#line 1725 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+if( PIND.B0 ==1 &&  PINC.B0 ==0)
+{
+Delay_ms(5000);
+if ( PIND.B0 ==1 &&  PINC.B0 ==0)
+{
+RunLoadsByBass++;
+if ( RunLoadsByBass==1 )  PORTD.B6 =1;
+if (RunLoadsByBass>=2 )
+{
+Delay_ms(5000);
+ PORTD.B7 =1;
+}
+LCD_OUT(1,16,"B");
+}
+}
+
+if ( PIND.B0 ==1 &&  PINC.B0 ==1 &&  PIND.B1 ==0)
+{
+Delay_ms(2000);
+if (  PIND.B0 ==1 &&  PINC.B0 ==1 &&  PIND.B1 ==0)
+{
+Delay_ms(5000);
+EEPROM_FactorySettings(1);
+Delay_ms(100);
+EEPROM_Load();
+LCD_OUT(2,1,"Reset Summer    ");
+Delay_ms(1000);
+LCD_CLEAR(2,1,16);
+}
+}
+if ( PIND.B0 ==0 &&  PINC.B0 ==1 &&  PIND.B1 ==1)
+{
+Delay_ms(2000);
+if (  PIND.B0 ==0 &&  PINC.B0 ==1 &&  PIND.B1 ==1)
+{
+Delay_ms(5000);
+EEPROM_FactorySettings(0);
+Delay_ms(100);
+EEPROM_Load();
+LCD_OUT(2,1,"Reset Winter    ");
+Delay_ms(1000);
+LCD_CLEAR(2,1,16);
+}
+}
+#line 1788 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+if( PIND.B1 ==1 &&  PINC.B0 ==0)
+{
+Delay_ms(2000);
+if ( PIND.B1 ==1 &&  PINC.B0 ==0)
+{
+TurnOffLoadsByPass=1;
+RunLoadsByBass=0;
+ PORTD.B6 =0;
+ PORTD.B7 =0;
+
+LCD_OUT(1,16," ");
+}
+}
+}
+
+void WDT_Enable()
+{
+
+
+SREG_I_bit=0;
+MCUSR &= ~(1<<WDRF);
+WDTCSR |= (1<<WDCE) | (1<<WDE);
+WDTCSR |= (1<<WDE);
+
+SREG_I_bit=1;
+}
+
+void WDT_Prescaler_Change()
+{
+
+
+SREG_I_bit=0;
+WDTCSR |= (1<<WDCE) | (1<<WDE);
+
+WDTCSR = (1<<WDE) | (1<<WDP3) | (1<<WDP0);
+
+SREG_I_bit=1;
+}
+
+void WDT_Disable()
+{
+
+
+SREG_I_bit=0;
+MCUSR &= ~(1<<WDRF);
+WDTCSR |= (1<<WDCE) | (1<<WDE);
+
+WDTCSR = 0x00;
+
+SREG_I_bit=1;
+}
+
+
+void CheckForSet()
+{
+
+if ( PIND.B2 ==0) SetUpProgram();
+
+}
+
+
+void AutoRunWithOutBatteryProtection()
+{
+if (Vin_Battery==0)
+{
+RunWithOutBattery= 1 ;
+}
+else
+{
+RunWithOutBattery= 0 ;
+}
+}
+
+void CheckForTimerActivationInRange()
+{
+
+
+if (ReadHours() >= hours_lcd_1 && ReadMinutes() >= minutes_lcd_1 && ReadHours() < hours_lcd_2 )
+{
+Timer_isOn=1;
+EEPROM_Write(0x49,1);
+}
+
+
+if (ReadHours() >= hours_lcd_1 && ReadMinutes() >= minutes_lcd_1 && ReadHours() == hours_lcd_2 )
+{
+
+if(ReadMinutes() < minutes_lcd_2)
+{
+Timer_isOn=1;
+EEPROM_Write(0x49,1);
+}
+}
+#line 1907 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+if (ReadHours() >= hours_lcd_timer2_start && ReadMinutes() >= minutes_lcd_timer2_start && ReadHours() < hours_lcd_timer2_stop )
+{
+Timer_2_isOn=1;
+EEPROM_Write(0x50,1);
+}
+
+if (ReadHours() >= hours_lcd_timer2_start && ReadMinutes() >= minutes_lcd_timer2_start && ReadHours() == hours_lcd_timer2_stop )
+{
+if(ReadMinutes()<minutes_lcd_timer2_stop)
+{
+Timer_2_isOn=1;
+EEPROM_Write(0x50,1);
+}
+}
+#line 1945 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/Solar_Auto_Switcher.c"
+}
+
+
+void TurnLoadsOffWhenGridOff()
+{
+
+if( PIND.B3 ==1 && Timer_isOn==0 && RunLoadsByBass==0 )
+{
+SecondsRealTime=0;
+ PORTD.B6 =0;
+AcBuzzerActiveTimes=0;
+LCD_Clear(2,7,16);
+}
+
+if ( PIND.B3 ==1 && Timer_2_isOn==0 && RunLoadsByBass==0)
+{
+SecondsRealTime=0;
+ PORTD.B7 =0;
+AcBuzzerActiveTimes=0;
+LCD_Clear(2,7,16);
+}
+
+}
+
+
+void CheckbatterySystemVoltage()
+{
+
+
+
+}
+
 void main() {
+
 Config();
 ADCBattery();
 EEPROM_Load();
-ReadBytesFromEEprom(0x07,(unsigned short *)&Mini_Battery_Voltage,4);
 TWI_Config();
 Config_Interrupts();
+ReadBytesFromEEprom(0x30,(unsigned short *)&Mini_Battery_Voltage,4);
+ReadBytesFromEEprom(0x40,(unsigned short *)&StartLoadsVoltage,4);
+ReadBytesFromEEprom(0x45,(unsigned short *)&startupTIme_1,2);
+ReadBytesFromEEprom(0x47,(unsigned short *)&startupTIme_2,2);
+ReadBytesFromEEprom(0x51,(unsigned short *)&Mini_Battery_Voltage_T2,4);
+ReadBytesFromEEprom(0x55,(unsigned short *)&StartLoadsVoltage_T2,4);
 while(1)
 {
+CheckForTimerActivationInRange();
+AutoRunWithOutBatteryProtection();
+CheckForSet();
+RunTimersNowCheck();
+
+
 Screen_1();
 Check_Timers();
+TurnLoadsOffWhenGridOff();
 
+ErrorList();
 Delay_ms(200);
+
 
 }
 }

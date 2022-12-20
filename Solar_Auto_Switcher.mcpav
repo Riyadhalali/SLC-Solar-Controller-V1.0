@@ -20,7 +20,8 @@ Value=0
 [FILES]
 File0=Solar_Auto_Switcher.c
 File1=ds1307.c
-Count=2
+File2=Backup.c
+Count=3
 [BINARIES]
 Count=0
 [IMAGES]
@@ -28,13 +29,16 @@ Count=0
 ActiveImageIndex=-1
 [OPENED_FILES]
 File0=Solar_Auto_Switcher.c
-Count=1
+File1=ds1307.h
+File2=ds1307.c
+Count=3
 [EEPROM]
 Count=0
 [ACTIVE_COMMENTS_FILES]
 Count=0
 [OTHER_FILES]
-Count=0
+File0=Solar_Auto_Switcher.hex
+Count=1
 [SEARCH_PATH]
 Path0=C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for AVR\Uses\lte64kw\
 Path1=C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for AVR\Packages\FT800\Uses\
@@ -84,5 +88,4 @@ Count=27
 [EXPANDED_NODES]
 0=Solar_Auto_Switcher.mcpav
 1=Sources
-4=Header Files
-Count=3
+Count=2
