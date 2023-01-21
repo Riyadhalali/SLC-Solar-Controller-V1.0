@@ -224,8 +224,6 @@ main
 		CheckTimeOccuredOff
 			Read_DS1307
 			Dec2Bcd
-		EEPROM_Write
-		Lcd_Out
 		ToggleBuzzer
 		Start_Timer_0_A
 		LCD_Clear

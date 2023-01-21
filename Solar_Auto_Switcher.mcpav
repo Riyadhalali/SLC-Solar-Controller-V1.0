@@ -6,7 +6,7 @@ Value=0
 [BUILD_TYPE]
 Value=0
 [ACTIVE_TAB]
-Value=Solar_Auto_Switcher.c
+Value=..\..\..\LCD Functions\LCD Blink Cursor\MikroC\MyProject.c
 [USE_EEPROM]
 Value=0
 [USE_HEAP]
@@ -28,10 +28,7 @@ Count=0
 Count=0
 ActiveImageIndex=-1
 [OPENED_FILES]
-File0=Solar_Auto_Switcher.c
-File1=ds1307.h
-File2=ds1307.c
-Count=3
+Count=0
 [EEPROM]
 Count=0
 [ACTIVE_COMMENTS_FILES]
@@ -88,4 +85,5 @@ Count=27
 [EXPANDED_NODES]
 0=Solar_Auto_Switcher.mcpav
 1=Sources
-Count=2
+12=Output Files
+Count=3

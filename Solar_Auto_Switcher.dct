@@ -1949,9 +1949,6 @@ wdp3
 wdp3_bit
 wdrf
 wdrf_bit
-wdt_disable
-wdt_enable
-wdt_prescaler_change
 wdtcsr
 wgm00
 wgm00_bit
