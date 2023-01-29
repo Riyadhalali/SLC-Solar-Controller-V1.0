@@ -18,42 +18,6 @@ main
 	Config_Interrupts
 	ReadBytesFromEEprom
 		EEPROM_Read
-	CheckForTimerActivationInRange
-		ReadHours
-			Read_DS1307
-				TWI_Start
-					TWI_Status
-					UART1_Write
-				TWI_Write
-					UART1_Write
-				TWI_Read
-					UART1_Write
-				TWI_Stop
-			Bcd2Dec
-				Mul_16x16
-				Mul_8x8_U
-		ReadMinutes
-			Read_DS1307
-			Bcd2Dec
-		EEPROM_Write
-	AutoRunWithOutBatteryProtection
-		float_op_equ
-			float_fpcmp1
-				float_fpcmp
-					float_fpsub
-						float_fpadd_alt
-							float_unpacks
-								float_unpacku
-									float_tstr16_r19
-								float_neg32
-							float_neg32
-							float_normalize_and_pack
-								float_tstr16_r19
-								float_pack
-									float_tstr16_r19
-							float_pack
-							float_tstr16_r19
-					float_tstr16_r19
 	CheckForSet
 		SetUpProgram
 			Lcd_Cmd
@@ -95,13 +59,28 @@ main
 							float_fpmul1
 								float_fpmul
 									float_unpacku
+										float_tstr16_r19
 									float_normalize_and_pack
+										float_tstr16_r19
+										float_pack
+											float_tstr16_r19
 						fround
 							Div_8x8_U
 							float_fpmul1
 						Mul_16x16
 						float_op_less
 							float_fpcmp1
+								float_fpcmp
+									float_fpsub
+										float_fpadd_alt
+											float_unpacks
+												float_unpacku
+												float_neg32
+											float_neg32
+											float_normalize_and_pack
+											float_pack
+											float_tstr16_r19
+									float_tstr16_r19
 						float_op_diff
 							float_fpcmp1
 						Div_16x16_S
@@ -148,7 +127,21 @@ main
 				LCD_Clear
 				Lcd_Out
 				ReadMinutes
+					Read_DS1307
+						TWI_Start
+							TWI_Status
+							UART1_Write
+						TWI_Write
+							UART1_Write
+						TWI_Read
+							UART1_Write
+						TWI_Stop
+					Bcd2Dec
+						Mul_16x16
+						Mul_8x8_U
 				ReadHours
+					Read_DS1307
+					Bcd2Dec
 				ByteToStr
 				Write_Time
 					write_Ds1307
@@ -170,6 +163,12 @@ main
 						Div_16x16_U
 				StoreBytesIntoEEprom
 				Lcd_Cmd
+	CheckForTimerActivationInRange
+		ReadHours
+		ReadMinutes
+	AutoRunWithOutBatteryProtection
+		float_op_equ
+			float_fpcmp1
 	RunTimersNowCheck
 		Lcd_Out
 		EEPROM_FactorySettings
@@ -195,6 +194,7 @@ main
 			float_ulong2fp
 			float_fpmul1
 			float_fpdiv1
+			float_fpadd1
 		CalculateAC
 			ReadAC
 				ADC_Read
@@ -229,7 +229,7 @@ main
 		LCD_Clear
 		Lcd_Init
 		Lcd_Cmd
-		float_op_big
+		float_op_gequ
 		float_op_less
 	TurnLoadsOffWhenGridOff
 		LCD_Clear
@@ -242,6 +242,3 @@ Interrupt_INT1
 	LCD_Clear
 	Lcd_Init
 	Lcd_Cmd
-Interrupt_Routine
-	SetUpProgram
-	LCD_Clear

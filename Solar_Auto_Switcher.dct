@@ -755,7 +755,6 @@ int0_bit
 int1
 int1_bit
 interrupt_int1
-interrupt_routine
 interupt_timer_0_a_offtime
 intf0
 intf0_bit

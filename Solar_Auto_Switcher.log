@@ -1,25 +1,24 @@
 0	1	mikrocAVR.exe -MSF -DBG -pATMEGA328P -LHF -DL -SSA -O11111115 -fo8 -BOOTSZ2048 -BOOTOP0 -N"F:\ENG. RIYAD\Ref\Ref Codes\Riyad_Complete_Codes\ATMEGA32A\Solar Auto Switcher\Solar Loads Control V1.0\MikroC\Solar_Auto_Switcher.mcpav" -SP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for AVR\Defs\" -SP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for AVR\Uses\lte64kw\" -SP"F:\ENG. RIYAD\Ref\Ref Codes\Riyad_Complete_Codes\ATMEGA32A\Solar Auto Switcher\Solar Loads Control V1.0\MikroC\" -SP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for AVR\Packages\FT800\Uses\" -SP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for AVR\Packages\FT810\Uses\" -SP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for AVR\Packages\FT812\Uses\" -IP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for AVR\Uses\lte64kw\" -IP"F:\ENG. RIYAD\Ref\Ref Codes\Riyad_Complete_Codes\ATMEGA32A\Solar Auto Switcher\Solar Loads Control V1.0\MikroC\" -IP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for AVR\Packages\FT800\Uses\" -IP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for AVR\Packages\FT810\Uses\" -IP"C:\Users\Public\Documents\Mikroelektronika\mikroC PRO for AVR\Packages\FT812\Uses\" "Solar_Auto_Switcher.c" "ds1307.c" "Backup.c" "__Lib_Math.mcl" "__Lib_MathDouble.mcl" "__Lib_System_nocall.mcl" "__Lib_Delays.mcl" "__Lib_CType.mcl" "__Lib_CString.mcl" "__Lib_CStdlib.mcl" "__Lib_CMath.mcl" "__Lib_Conversions.mcl" "__Lib_Sprintf.mcl" "__Lib_Time.mcl" "__Lib_Trigonometry.mcl" "__Lib_Button.mcl" "__Lib_Keypad4x4.mcl" "__Lib_SoftI2C.mcl" "__Lib_ADC_eio_ref2.mcl" "__Lib_EEPROM_eep.mcl" "__Lib_FLASH_rwe.mcl" "__Lib_TWI_eio.mcl" "__Lib_UART_d01_eio.mcl" "__Lib_CANSPI.mcl" "__Lib_CF.mcl" "__Lib_CFFat16.mcl" "__Lib_GlcdFonts.mcl" "__Lib_Glcd.mcl" "__Lib_LcdConsts.mcl" "__Lib_Lcd.mcl" "__Lib_Mmc.mcl" "__Lib_S1D13700.mcl" "__Lib_TouchPanel.mcl"	 
 diagnostics: 0	122	Compilation Started	ds1307.h
 hint: 0	1004	interrupt handler (Interrupt_INT1 at 0x0004)	Solar_Auto_Switcher.c
-hint: 0	1004	interrupt handler (Interrupt_Routine at 0x0002)	Solar_Auto_Switcher.c
 hint: 0	1004	interrupt handler (Interupt_Timer_0_A_OFFTime at 0x001C)	Solar_Auto_Switcher.c
-warning: 1824	1503	Result is not defined in function: 'RunTimersNowCheck'	Solar_Auto_Switcher.c
-warning: 1977	1503	Result is not defined in function: 'CheckForVoltageProtection'	Solar_Auto_Switcher.c
-diagnostics: 2005	123	Compiled Successfully	Solar_Auto_Switcher.c
-hint: 1505	1164	Variable 'numberOfSamples' has been eliminated by optimizer	Solar_Auto_Switcher.c
-hint: 1506	1164	Variable 'numberOfAverage' has been eliminated by optimizer	Solar_Auto_Switcher.c
-hint: 1507	1164	Variable 'sum' has been eliminated by optimizer	Solar_Auto_Switcher.c
-hint: 1511	1164	Variable 'j' has been eliminated by optimizer	Solar_Auto_Switcher.c
-hint: 1512	1164	Variable 'average' has been eliminated by optimizer	Solar_Auto_Switcher.c
+warning: 1854	1503	Result is not defined in function: 'RunTimersNowCheck'	Solar_Auto_Switcher.c
+warning: 2007	1503	Result is not defined in function: 'CheckForVoltageProtection'	Solar_Auto_Switcher.c
+diagnostics: 2035	123	Compiled Successfully	Solar_Auto_Switcher.c
+hint: 1535	1164	Variable 'numberOfSamples' has been eliminated by optimizer	Solar_Auto_Switcher.c
+hint: 1536	1164	Variable 'numberOfAverage' has been eliminated by optimizer	Solar_Auto_Switcher.c
+hint: 1537	1164	Variable 'sum' has been eliminated by optimizer	Solar_Auto_Switcher.c
+hint: 1541	1164	Variable 'j' has been eliminated by optimizer	Solar_Auto_Switcher.c
+hint: 1542	1164	Variable 'average' has been eliminated by optimizer	Solar_Auto_Switcher.c
 diagnostics: 0	122	Compilation Started	ds1307.h
 diagnostics: 268	123	Compiled Successfully	ds1307.c
 diagnostics: 0	122	Compilation Started	Backup.c
 diagnostics: 0	123	Compiled Successfully	Backup.c
-diagnostics: 0	127	All files Compiled in 484 ms	 
+diagnostics: 0	127	All files Compiled in 531 ms	 
 hint: 0	1144	Used RX (bytes): 32 (100%)   Free RX (bytes): 0 (0%)	Used RX (bytes): 32 (100%)   Free RX (bytes): 0 (0%)
 hint: 0	1144	Static RAM (bytes): 391   Dynamic RAM (bytes): 1657	Static RAM (bytes): 391   Dynamic RAM (bytes): 1657
-hint: 0	1144	Used ROM (bytes): 28208 (98%)  Free ROM (bytes): 464 (2%)	Used ROM (bytes): 28208 (98%)  Free ROM (bytes): 464 (2%)
+hint: 0	1144	Used ROM (bytes): 28222 (98%)  Free ROM (bytes): 450 (2%)	Used ROM (bytes): 28222 (98%)  Free ROM (bytes): 450 (2%)
 diagnostics: 0	125	Project Linked Successfully	Solar_Auto_Switcher.mcpav
-diagnostics: 0	128	Linked in 125 ms	 
-diagnostics: 0	129	Project 'Solar_Auto_Switcher.mcpav' completed: 656 ms	 
-diagnostics: 0	103	Finished successfully: 21 Jan 2023, 14:50:01	Solar_Auto_Switcher.mcpav
+diagnostics: 0	128	Linked in 187 ms	 
+diagnostics: 0	129	Project 'Solar_Auto_Switcher.mcpav' completed: 750 ms	 
+diagnostics: 0	103	Finished successfully: 29 Jan 2023, 08:43:17	Solar_Auto_Switcher.mcpav
