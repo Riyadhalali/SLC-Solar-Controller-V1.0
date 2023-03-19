@@ -157,9 +157,9 @@ _LCD_Clear:
 L_LCD_Clear2:
 ; Column start address is: 17 (R17)
 	CP         R4, R17
-	BRSH       L__LCD_Clear918
+	BRSH       L__LCD_Clear936
 	JMP        L_LCD_Clear3
-L__LCD_Clear918:
+L__LCD_Clear936:
 ;Solar_Auto_Switcher.c,185 :: 		Lcd_Chr(Row,Column,32);
 	PUSH       R17
 	PUSH       R4
@@ -224,16 +224,21 @@ _Interrupt_INT1:
 	PUSH       R4
 	LDI        R27, 0
 	STS        _AcBuzzerActiveTimes+0, R27
-;Solar_Auto_Switcher.c,204 :: 		if(AC_Available==1 && Timer_isOn==0  )
+;Solar_Auto_Switcher.c,204 :: 		if(AC_Available==1 && Timer_isOn==0  && RunLoadsByBass==0)
 	IN         R27, PIND+0
 	SBRS       R27, 3
-	JMP        L__Interrupt_INT1654
+	JMP        L__Interrupt_INT1661
 	LDS        R16, _Timer_isOn+0
 	CPI        R16, 0
-	BREQ       L__Interrupt_INT1921
-	JMP        L__Interrupt_INT1653
-L__Interrupt_INT1921:
-L__Interrupt_INT1652:
+	BREQ       L__Interrupt_INT1939
+	JMP        L__Interrupt_INT1660
+L__Interrupt_INT1939:
+	LDS        R16, _RunLoadsByBass+0
+	CPI        R16, 0
+	BREQ       L__Interrupt_INT1940
+	JMP        L__Interrupt_INT1659
+L__Interrupt_INT1940:
+L__Interrupt_INT1658:
 ;Solar_Auto_Switcher.c,208 :: 		SecondsRealTime=0;
 	LDI        R27, 0
 	STS        _SecondsRealTime+0, R27
@@ -250,19 +255,25 @@ L__Interrupt_INT1652:
 	LDI        R27, 2
 	MOV        R2, R27
 	CALL       _LCD_Clear+0
-;Solar_Auto_Switcher.c,204 :: 		if(AC_Available==1 && Timer_isOn==0  )
-L__Interrupt_INT1654:
-L__Interrupt_INT1653:
-;Solar_Auto_Switcher.c,213 :: 		if (AC_Available==1 && Timer_2_isOn==0)  // it must be   Timer_2_isOn==0    but because of error in loading eeprom value
+;Solar_Auto_Switcher.c,204 :: 		if(AC_Available==1 && Timer_isOn==0  && RunLoadsByBass==0)
+L__Interrupt_INT1661:
+L__Interrupt_INT1660:
+L__Interrupt_INT1659:
+;Solar_Auto_Switcher.c,213 :: 		if (AC_Available==1 && Timer_2_isOn==0 && RunLoadsByBass==0)  // it must be   Timer_2_isOn==0    but because of error in loading eeprom value
 	IN         R27, PIND+0
 	SBRS       R27, 3
-	JMP        L__Interrupt_INT1656
+	JMP        L__Interrupt_INT1664
 	LDS        R16, _Timer_2_isOn+0
 	CPI        R16, 0
-	BREQ       L__Interrupt_INT1922
-	JMP        L__Interrupt_INT1655
-L__Interrupt_INT1922:
-L__Interrupt_INT1651:
+	BREQ       L__Interrupt_INT1941
+	JMP        L__Interrupt_INT1663
+L__Interrupt_INT1941:
+	LDS        R16, _RunLoadsByBass+0
+	CPI        R16, 0
+	BREQ       L__Interrupt_INT1942
+	JMP        L__Interrupt_INT1662
+L__Interrupt_INT1942:
+L__Interrupt_INT1657:
 ;Solar_Auto_Switcher.c,217 :: 		SecondsRealTime=0;
 	LDI        R27, 0
 	STS        _SecondsRealTime+0, R27
@@ -279,9 +290,10 @@ L__Interrupt_INT1651:
 	LDI        R27, 2
 	MOV        R2, R27
 	CALL       _LCD_Clear+0
-;Solar_Auto_Switcher.c,213 :: 		if (AC_Available==1 && Timer_2_isOn==0)  // it must be   Timer_2_isOn==0    but because of error in loading eeprom value
-L__Interrupt_INT1656:
-L__Interrupt_INT1655:
+;Solar_Auto_Switcher.c,213 :: 		if (AC_Available==1 && Timer_2_isOn==0 && RunLoadsByBass==0)  // it must be   Timer_2_isOn==0    but because of error in loading eeprom value
+L__Interrupt_INT1664:
+L__Interrupt_INT1663:
+L__Interrupt_INT1662:
 ;Solar_Auto_Switcher.c,221 :: 		LCD_Init();
 	CALL       _Lcd_Init+0
 ;Solar_Auto_Switcher.c,222 :: 		LCD_CMD(_LCD_CLEAR);
@@ -418,9 +430,9 @@ L_StoreBytesIntoEEprom11:
 ; j start address is: 19 (R19)
 	CP         R19, R6
 	CPC        R20, R7
-	BRLO       L__StoreBytesIntoEEprom925
+	BRLO       L__StoreBytesIntoEEprom945
 	JMP        L_StoreBytesIntoEEprom12
-L__StoreBytesIntoEEprom925:
+L__StoreBytesIntoEEprom945:
 ;Solar_Auto_Switcher.c,259 :: 		EEprom_Write(address+j,*(ptr+j));
 	MOV        R30, R19
 	MOV        R31, R20
@@ -489,9 +501,9 @@ L_ReadBytesFromEEprom16:
 ; j start address is: 19 (R19)
 	CP         R19, R6
 	CPC        R20, R7
-	BRLO       L__ReadBytesFromEEprom927
+	BRLO       L__ReadBytesFromEEprom947
 	JMP        L_ReadBytesFromEEprom17
-L__ReadBytesFromEEprom927:
+L__ReadBytesFromEEprom947:
 ;Solar_Auto_Switcher.c,270 :: 		*(ptr+j)=EEPROM_Read(address+j);
 	MOV        R16, R19
 	MOV        R17, R20
@@ -579,9 +591,9 @@ _Check_Timers:
 ;Solar_Auto_Switcher.c,285 :: 		if (matched_timer_1_start==1)
 	LDS        R16, _matched_timer_1_start+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers929
+	BREQ       L__Check_Timers949
 	JMP        L_Check_Timers21
-L__Check_Timers929:
+L__Check_Timers949:
 ;Solar_Auto_Switcher.c,287 :: 		Timer_isOn=1;
 	LDI        R27, 1
 	STS        _Timer_isOn+0, R27
@@ -591,12 +603,12 @@ L__Check_Timers929:
 ;Solar_Auto_Switcher.c,292 :: 		if (AC_Available==1 && Timer_Enable==1  && Vin_Battery >= StartLoadsVoltage && RunWithOutBattery==false )
 	IN         R27, PIND+0
 	SBRS       R27, 3
-	JMP        L__Check_Timers683
+	JMP        L__Check_Timers691
 	LDS        R16, _Timer_Enable+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers930
-	JMP        L__Check_Timers682
-L__Check_Timers930:
+	BREQ       L__Check_Timers950
+	JMP        L__Check_Timers690
+L__Check_Timers950:
 	LDS        R20, _StartLoadsVoltage+0
 	LDS        R21, _StartLoadsVoltage+1
 	LDS        R22, _StartLoadsVoltage+2
@@ -608,77 +620,77 @@ L__Check_Timers930:
 	CALL       _float_op_gequ+0
 	OR         R0, R0
 	LDI        R16, 0
-	BREQ       L__Check_Timers931
+	BREQ       L__Check_Timers951
 	LDI        R16, 1
-L__Check_Timers931:
+L__Check_Timers951:
 	TST        R16
-	BRNE       L__Check_Timers932
-	JMP        L__Check_Timers681
-L__Check_Timers932:
+	BRNE       L__Check_Timers952
+	JMP        L__Check_Timers689
+L__Check_Timers952:
 	LDS        R16, _RunWithOutBattery+0
 	CPI        R16, 0
-	BREQ       L__Check_Timers933
-	JMP        L__Check_Timers680
-L__Check_Timers933:
-L__Check_Timers679:
+	BREQ       L__Check_Timers953
+	JMP        L__Check_Timers688
+L__Check_Timers953:
+L__Check_Timers687:
 ;Solar_Auto_Switcher.c,294 :: 		Relay_L_Solar=1;
 	IN         R27, PORTD+0
 	SBR        R27, 64
 	OUT        PORTD+0, R27
 ;Solar_Auto_Switcher.c,292 :: 		if (AC_Available==1 && Timer_Enable==1  && Vin_Battery >= StartLoadsVoltage && RunWithOutBattery==false )
-L__Check_Timers683:
-L__Check_Timers682:
-L__Check_Timers681:
-L__Check_Timers680:
+L__Check_Timers691:
+L__Check_Timers690:
+L__Check_Timers689:
+L__Check_Timers688:
 ;Solar_Auto_Switcher.c,298 :: 		if (AC_Available==1 && Timer_Enable==1  && RunWithOutBattery==true )
 	IN         R27, PIND+0
 	SBRS       R27, 3
-	JMP        L__Check_Timers686
+	JMP        L__Check_Timers694
 	LDS        R16, _Timer_Enable+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers934
-	JMP        L__Check_Timers685
-L__Check_Timers934:
+	BREQ       L__Check_Timers954
+	JMP        L__Check_Timers693
+L__Check_Timers954:
 	LDS        R16, _RunWithOutBattery+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers935
-	JMP        L__Check_Timers684
-L__Check_Timers935:
-L__Check_Timers678:
+	BREQ       L__Check_Timers955
+	JMP        L__Check_Timers692
+L__Check_Timers955:
+L__Check_Timers686:
 ;Solar_Auto_Switcher.c,300 :: 		Relay_L_Solar=1;
 	IN         R27, PORTD+0
 	SBR        R27, 64
 	OUT        PORTD+0, R27
 ;Solar_Auto_Switcher.c,298 :: 		if (AC_Available==1 && Timer_Enable==1  && RunWithOutBattery==true )
-L__Check_Timers686:
-L__Check_Timers685:
-L__Check_Timers684:
+L__Check_Timers694:
+L__Check_Timers693:
+L__Check_Timers692:
 ;Solar_Auto_Switcher.c,302 :: 		} // end if ac_available
 L_Check_Timers21:
 ;Solar_Auto_Switcher.c,305 :: 		if (matched_timer_1_stop==1)
 	LDS        R16, _matched_timer_1_stop+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers936
+	BREQ       L__Check_Timers956
 	JMP        L_Check_Timers28
-L__Check_Timers936:
+L__Check_Timers956:
 ;Solar_Auto_Switcher.c,307 :: 		Timer_isOn=0;        // to continue the timer after breakout the timer when grid is available
 	LDI        R27, 0
 	STS        _Timer_isOn+0, R27
 ;Solar_Auto_Switcher.c,310 :: 		if (AC_Available==1 && Timer_Enable==1  &&  RunWithOutBattery==false  )
 	IN         R27, PIND+0
 	SBRS       R27, 3
-	JMP        L__Check_Timers689
+	JMP        L__Check_Timers697
 	LDS        R16, _Timer_Enable+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers937
-	JMP        L__Check_Timers688
-L__Check_Timers937:
+	BREQ       L__Check_Timers957
+	JMP        L__Check_Timers696
+L__Check_Timers957:
 	LDS        R16, _RunWithOutBattery+0
 	CPI        R16, 0
-	BREQ       L__Check_Timers938
-	JMP        L__Check_Timers687
-L__Check_Timers938:
-L__Check_Timers677:
+	BREQ       L__Check_Timers958
+	JMP        L__Check_Timers695
+L__Check_Timers958:
+L__Check_Timers685:
 ;Solar_Auto_Switcher.c,313 :: 		SecondsRealTimePv_ReConnect_T1=0;
 	LDI        R27, 0
 	STS        _SecondsRealTimePv_ReConnect_T1+0, R27
@@ -688,24 +700,24 @@ L__Check_Timers677:
 	CBR        R27, 64
 	OUT        PORTD+0, R27
 ;Solar_Auto_Switcher.c,310 :: 		if (AC_Available==1 && Timer_Enable==1  &&  RunWithOutBattery==false  )
-L__Check_Timers689:
-L__Check_Timers688:
-L__Check_Timers687:
+L__Check_Timers697:
+L__Check_Timers696:
+L__Check_Timers695:
 ;Solar_Auto_Switcher.c,317 :: 		if (AC_Available==1 && Timer_Enable==1  && RunWithOutBattery==true  )
 	IN         R27, PIND+0
 	SBRS       R27, 3
-	JMP        L__Check_Timers692
+	JMP        L__Check_Timers700
 	LDS        R16, _Timer_Enable+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers939
-	JMP        L__Check_Timers691
-L__Check_Timers939:
+	BREQ       L__Check_Timers959
+	JMP        L__Check_Timers699
+L__Check_Timers959:
 	LDS        R16, _RunWithOutBattery+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers940
-	JMP        L__Check_Timers690
-L__Check_Timers940:
-L__Check_Timers676:
+	BREQ       L__Check_Timers960
+	JMP        L__Check_Timers698
+L__Check_Timers960:
+L__Check_Timers684:
 ;Solar_Auto_Switcher.c,320 :: 		SecondsRealTimePv_ReConnect_T1=0;
 	LDI        R27, 0
 	STS        _SecondsRealTimePv_ReConnect_T1+0, R27
@@ -715,17 +727,17 @@ L__Check_Timers676:
 	CBR        R27, 64
 	OUT        PORTD+0, R27
 ;Solar_Auto_Switcher.c,317 :: 		if (AC_Available==1 && Timer_Enable==1  && RunWithOutBattery==true  )
-L__Check_Timers692:
-L__Check_Timers691:
-L__Check_Timers690:
+L__Check_Timers700:
+L__Check_Timers699:
+L__Check_Timers698:
 ;Solar_Auto_Switcher.c,323 :: 		}
 L_Check_Timers28:
 ;Solar_Auto_Switcher.c,327 :: 		if (matched_timer_2_start==1)
 	LDS        R16, _matched_timer_2_start+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers941
+	BREQ       L__Check_Timers961
 	JMP        L_Check_Timers35
-L__Check_Timers941:
+L__Check_Timers961:
 ;Solar_Auto_Switcher.c,329 :: 		Timer_2_isOn=1;
 	LDI        R27, 1
 	STS        _Timer_2_isOn+0, R27
@@ -735,12 +747,12 @@ L__Check_Timers941:
 ;Solar_Auto_Switcher.c,333 :: 		if (AC_Available==1 && Timer_Enable==1  && Vin_Battery >= StartLoadsVoltage_T2 && RunWithOutBattery==false)
 	IN         R27, PIND+0
 	SBRS       R27, 3
-	JMP        L__Check_Timers696
+	JMP        L__Check_Timers704
 	LDS        R16, _Timer_Enable+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers942
-	JMP        L__Check_Timers695
-L__Check_Timers942:
+	BREQ       L__Check_Timers962
+	JMP        L__Check_Timers703
+L__Check_Timers962:
 	LDS        R20, _StartLoadsVoltage_T2+0
 	LDS        R21, _StartLoadsVoltage_T2+1
 	LDS        R22, _StartLoadsVoltage_T2+2
@@ -752,77 +764,77 @@ L__Check_Timers942:
 	CALL       _float_op_gequ+0
 	OR         R0, R0
 	LDI        R16, 0
-	BREQ       L__Check_Timers943
+	BREQ       L__Check_Timers963
 	LDI        R16, 1
-L__Check_Timers943:
+L__Check_Timers963:
 	TST        R16
-	BRNE       L__Check_Timers944
-	JMP        L__Check_Timers694
-L__Check_Timers944:
+	BRNE       L__Check_Timers964
+	JMP        L__Check_Timers702
+L__Check_Timers964:
 	LDS        R16, _RunWithOutBattery+0
 	CPI        R16, 0
-	BREQ       L__Check_Timers945
-	JMP        L__Check_Timers693
-L__Check_Timers945:
-L__Check_Timers675:
+	BREQ       L__Check_Timers965
+	JMP        L__Check_Timers701
+L__Check_Timers965:
+L__Check_Timers683:
 ;Solar_Auto_Switcher.c,335 :: 		Relay_L_Solar_2=1;
 	IN         R27, PORTD+0
 	SBR        R27, 128
 	OUT        PORTD+0, R27
 ;Solar_Auto_Switcher.c,333 :: 		if (AC_Available==1 && Timer_Enable==1  && Vin_Battery >= StartLoadsVoltage_T2 && RunWithOutBattery==false)
-L__Check_Timers696:
-L__Check_Timers695:
-L__Check_Timers694:
-L__Check_Timers693:
+L__Check_Timers704:
+L__Check_Timers703:
+L__Check_Timers702:
+L__Check_Timers701:
 ;Solar_Auto_Switcher.c,339 :: 		if (AC_Available==1 && Timer_Enable==1  && RunWithOutBattery==true)
 	IN         R27, PIND+0
 	SBRS       R27, 3
-	JMP        L__Check_Timers699
+	JMP        L__Check_Timers707
 	LDS        R16, _Timer_Enable+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers946
-	JMP        L__Check_Timers698
-L__Check_Timers946:
+	BREQ       L__Check_Timers966
+	JMP        L__Check_Timers706
+L__Check_Timers966:
 	LDS        R16, _RunWithOutBattery+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers947
-	JMP        L__Check_Timers697
-L__Check_Timers947:
-L__Check_Timers674:
+	BREQ       L__Check_Timers967
+	JMP        L__Check_Timers705
+L__Check_Timers967:
+L__Check_Timers682:
 ;Solar_Auto_Switcher.c,341 :: 		Relay_L_Solar_2=1;
 	IN         R27, PORTD+0
 	SBR        R27, 128
 	OUT        PORTD+0, R27
 ;Solar_Auto_Switcher.c,339 :: 		if (AC_Available==1 && Timer_Enable==1  && RunWithOutBattery==true)
-L__Check_Timers699:
-L__Check_Timers698:
-L__Check_Timers697:
+L__Check_Timers707:
+L__Check_Timers706:
+L__Check_Timers705:
 ;Solar_Auto_Switcher.c,344 :: 		} // end if ac_available
 L_Check_Timers35:
 ;Solar_Auto_Switcher.c,347 :: 		if (matched_timer_2_stop==1)
 	LDS        R16, _matched_timer_2_stop+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers948
+	BREQ       L__Check_Timers968
 	JMP        L_Check_Timers42
-L__Check_Timers948:
+L__Check_Timers968:
 ;Solar_Auto_Switcher.c,349 :: 		Timer_2_isOn=0;        // to continue the timer after breakout the timer when grid is available
 	LDI        R27, 0
 	STS        _Timer_2_isOn+0, R27
 ;Solar_Auto_Switcher.c,352 :: 		if (AC_Available==1 && Timer_Enable==1 && RunWithOutBattery==false )
 	IN         R27, PIND+0
 	SBRS       R27, 3
-	JMP        L__Check_Timers702
+	JMP        L__Check_Timers710
 	LDS        R16, _Timer_Enable+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers949
-	JMP        L__Check_Timers701
-L__Check_Timers949:
+	BREQ       L__Check_Timers969
+	JMP        L__Check_Timers709
+L__Check_Timers969:
 	LDS        R16, _RunWithOutBattery+0
 	CPI        R16, 0
-	BREQ       L__Check_Timers950
-	JMP        L__Check_Timers700
-L__Check_Timers950:
-L__Check_Timers673:
+	BREQ       L__Check_Timers970
+	JMP        L__Check_Timers708
+L__Check_Timers970:
+L__Check_Timers681:
 ;Solar_Auto_Switcher.c,356 :: 		Relay_L_Solar_2=0; // relay off
 	IN         R27, PORTD+0
 	CBR        R27, 128
@@ -832,24 +844,24 @@ L__Check_Timers673:
 	STS        _SecondsRealTimePv_ReConnect_T2+0, R27
 	STS        _SecondsRealTimePv_ReConnect_T2+1, R27
 ;Solar_Auto_Switcher.c,352 :: 		if (AC_Available==1 && Timer_Enable==1 && RunWithOutBattery==false )
-L__Check_Timers702:
-L__Check_Timers701:
-L__Check_Timers700:
+L__Check_Timers710:
+L__Check_Timers709:
+L__Check_Timers708:
 ;Solar_Auto_Switcher.c,361 :: 		if (AC_Available==1 && Timer_Enable==1  && RunWithOutBattery==true )
 	IN         R27, PIND+0
 	SBRS       R27, 3
-	JMP        L__Check_Timers705
+	JMP        L__Check_Timers713
 	LDS        R16, _Timer_Enable+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers951
-	JMP        L__Check_Timers704
-L__Check_Timers951:
+	BREQ       L__Check_Timers971
+	JMP        L__Check_Timers712
+L__Check_Timers971:
 	LDS        R16, _RunWithOutBattery+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers952
-	JMP        L__Check_Timers703
-L__Check_Timers952:
-L__Check_Timers672:
+	BREQ       L__Check_Timers972
+	JMP        L__Check_Timers711
+L__Check_Timers972:
+L__Check_Timers680:
 ;Solar_Auto_Switcher.c,363 :: 		SecondsRealTimePv_ReConnect_T2=0;
 	LDI        R27, 0
 	STS        _SecondsRealTimePv_ReConnect_T2+0, R27
@@ -859,31 +871,31 @@ L__Check_Timers672:
 	CBR        R27, 128
 	OUT        PORTD+0, R27
 ;Solar_Auto_Switcher.c,361 :: 		if (AC_Available==1 && Timer_Enable==1  && RunWithOutBattery==true )
-L__Check_Timers705:
-L__Check_Timers704:
-L__Check_Timers703:
+L__Check_Timers713:
+L__Check_Timers712:
+L__Check_Timers711:
 ;Solar_Auto_Switcher.c,367 :: 		} // end match timer stop
 L_Check_Timers42:
 ;Solar_Auto_Switcher.c,372 :: 		if (AC_Available==0 && ByPassState==0 && VoltageProtectorGood==1 && VoltageProtectionEnable==1 )       //bypass enabled
 	IN         R27, PIND+0
 	SBRC       R27, 3
-	JMP        L__Check_Timers713
+	JMP        L__Check_Timers721
 	LDS        R16, _ByPassState+0
 	CPI        R16, 0
-	BREQ       L__Check_Timers953
-	JMP        L__Check_Timers712
-L__Check_Timers953:
+	BREQ       L__Check_Timers973
+	JMP        L__Check_Timers720
+L__Check_Timers973:
 	LDS        R16, _VoltageProtectorGood+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers954
-	JMP        L__Check_Timers711
-L__Check_Timers954:
+	BREQ       L__Check_Timers974
+	JMP        L__Check_Timers719
+L__Check_Timers974:
 	LDS        R16, _VoltageProtectionEnable+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers955
-	JMP        L__Check_Timers710
-L__Check_Timers955:
-L__Check_Timers671:
+	BREQ       L__Check_Timers975
+	JMP        L__Check_Timers718
+L__Check_Timers975:
+L__Check_Timers679:
 ;Solar_Auto_Switcher.c,375 :: 		Delay_ms(300);       // for error to get one seconds approxmiallty
 	LDI        R18, 13
 	LDI        R17, 45
@@ -910,20 +922,20 @@ L_Check_Timers52:
 	LDS        R17, _startupTIme_1+1
 	CP         R18, R16
 	CPC        R19, R17
-	BRSH       L__Check_Timers956
-	JMP        L__Check_Timers707
-L__Check_Timers956:
+	BRSH       L__Check_Timers976
+	JMP        L__Check_Timers715
+L__Check_Timers976:
 	IN         R27, PIND+0
 	SBRC       R27, 3
-	JMP        L__Check_Timers706
-L__Check_Timers670:
+	JMP        L__Check_Timers714
+L__Check_Timers678:
 ;Solar_Auto_Switcher.c,381 :: 		Relay_L_Solar=1;
 	IN         R27, PORTD+0
 	SBR        R27, 64
 	OUT        PORTD+0, R27
 ;Solar_Auto_Switcher.c,378 :: 		if(SecondsRealTime >= startupTIme_1 && AC_Available==0)
-L__Check_Timers707:
-L__Check_Timers706:
+L__Check_Timers715:
+L__Check_Timers714:
 ;Solar_Auto_Switcher.c,384 :: 		if(SecondsRealTime >= startupTIme_2 && AC_Available==0)
 	LDS        R18, _SecondsRealTime+0
 	LDS        R19, _SecondsRealTime+1
@@ -931,63 +943,63 @@ L__Check_Timers706:
 	LDS        R17, _startupTIme_2+1
 	CP         R18, R16
 	CPC        R19, R17
-	BRSH       L__Check_Timers957
-	JMP        L__Check_Timers709
-L__Check_Timers957:
+	BRSH       L__Check_Timers977
+	JMP        L__Check_Timers717
+L__Check_Timers977:
 	IN         R27, PIND+0
 	SBRC       R27, 3
-	JMP        L__Check_Timers708
-L__Check_Timers669:
+	JMP        L__Check_Timers716
+L__Check_Timers677:
 ;Solar_Auto_Switcher.c,386 :: 		Relay_L_Solar_2=1;
 	IN         R27, PORTD+0
 	SBR        R27, 128
 	OUT        PORTD+0, R27
 ;Solar_Auto_Switcher.c,384 :: 		if(SecondsRealTime >= startupTIme_2 && AC_Available==0)
-L__Check_Timers709:
-L__Check_Timers708:
+L__Check_Timers717:
+L__Check_Timers716:
 ;Solar_Auto_Switcher.c,389 :: 		ToggleBuzzer();
 	CALL       _ToggleBuzzer+0
 ;Solar_Auto_Switcher.c,372 :: 		if (AC_Available==0 && ByPassState==0 && VoltageProtectorGood==1 && VoltageProtectionEnable==1 )       //bypass enabled
-L__Check_Timers713:
-L__Check_Timers712:
-L__Check_Timers711:
-L__Check_Timers710:
+L__Check_Timers721:
+L__Check_Timers720:
+L__Check_Timers719:
+L__Check_Timers718:
 ;Solar_Auto_Switcher.c,395 :: 		if(AC_Available==0 && VoltageProtectorGood==0 && VoltageProtectionEnable==1)
 	IN         R27, PIND+0
 	SBRC       R27, 3
-	JMP        L__Check_Timers716
+	JMP        L__Check_Timers724
 	LDS        R16, _VoltageProtectorGood+0
 	CPI        R16, 0
-	BREQ       L__Check_Timers958
-	JMP        L__Check_Timers715
-L__Check_Timers958:
+	BREQ       L__Check_Timers978
+	JMP        L__Check_Timers723
+L__Check_Timers978:
 	LDS        R16, _VoltageProtectionEnable+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers959
-	JMP        L__Check_Timers714
-L__Check_Timers959:
-L__Check_Timers668:
+	BREQ       L__Check_Timers979
+	JMP        L__Check_Timers722
+L__Check_Timers979:
+L__Check_Timers676:
 ;Solar_Auto_Switcher.c,397 :: 		Start_Timer_0_A();         // give some time ac grid to stabilize
 	CALL       _Start_Timer_0_A+0
 ;Solar_Auto_Switcher.c,395 :: 		if(AC_Available==0 && VoltageProtectorGood==0 && VoltageProtectionEnable==1)
-L__Check_Timers716:
-L__Check_Timers715:
-L__Check_Timers714:
+L__Check_Timers724:
+L__Check_Timers723:
+L__Check_Timers722:
 ;Solar_Auto_Switcher.c,400 :: 		if(AC_Available==1 && Timer_2_isOn == 1 && Timer_isOn == 1)
 	IN         R27, PIND+0
 	SBRS       R27, 3
-	JMP        L__Check_Timers719
+	JMP        L__Check_Timers727
 	LDS        R16, _Timer_2_isOn+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers960
-	JMP        L__Check_Timers718
-L__Check_Timers960:
+	BREQ       L__Check_Timers980
+	JMP        L__Check_Timers726
+L__Check_Timers980:
 	LDS        R16, _Timer_isOn+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers961
-	JMP        L__Check_Timers717
-L__Check_Timers961:
-L__Check_Timers667:
+	BREQ       L__Check_Timers981
+	JMP        L__Check_Timers725
+L__Check_Timers981:
+L__Check_Timers675:
 ;Solar_Auto_Switcher.c,402 :: 		LCD_CLEAR(2,7,16); // to clear lcd when grid is not available
 	LDI        R27, 16
 	MOV        R4, R27
@@ -997,19 +1009,19 @@ L__Check_Timers667:
 	MOV        R2, R27
 	CALL       _LCD_Clear+0
 ;Solar_Auto_Switcher.c,400 :: 		if(AC_Available==1 && Timer_2_isOn == 1 && Timer_isOn == 1)
-L__Check_Timers719:
-L__Check_Timers718:
-L__Check_Timers717:
+L__Check_Timers727:
+L__Check_Timers726:
+L__Check_Timers725:
 ;Solar_Auto_Switcher.c,406 :: 		if(AC_Available==0 &&   VoltageProtectionEnable==0 )   // voltage protector is not enabled
 	IN         R27, PIND+0
 	SBRC       R27, 3
-	JMP        L__Check_Timers725
+	JMP        L__Check_Timers733
 	LDS        R16, _VoltageProtectionEnable+0
 	CPI        R16, 0
-	BREQ       L__Check_Timers962
-	JMP        L__Check_Timers724
-L__Check_Timers962:
-L__Check_Timers666:
+	BREQ       L__Check_Timers982
+	JMP        L__Check_Timers732
+L__Check_Timers982:
+L__Check_Timers674:
 ;Solar_Auto_Switcher.c,408 :: 		Delay_ms(300);       // for error to get one seconds approxmiallty
 	LDI        R18, 13
 	LDI        R17, 45
@@ -1036,20 +1048,20 @@ L_Check_Timers69:
 	LDS        R17, _startupTIme_1+1
 	CP         R18, R16
 	CPC        R19, R17
-	BRSH       L__Check_Timers963
-	JMP        L__Check_Timers721
-L__Check_Timers963:
+	BRSH       L__Check_Timers983
+	JMP        L__Check_Timers729
+L__Check_Timers983:
 	IN         R27, PIND+0
 	SBRC       R27, 3
-	JMP        L__Check_Timers720
-L__Check_Timers665:
+	JMP        L__Check_Timers728
+L__Check_Timers673:
 ;Solar_Auto_Switcher.c,414 :: 		Relay_L_Solar=1;
 	IN         R27, PORTD+0
 	SBR        R27, 64
 	OUT        PORTD+0, R27
 ;Solar_Auto_Switcher.c,411 :: 		if(SecondsRealTime >= startupTIme_1 && AC_Available==0)
-L__Check_Timers721:
-L__Check_Timers720:
+L__Check_Timers729:
+L__Check_Timers728:
 ;Solar_Auto_Switcher.c,417 :: 		if(SecondsRealTime >= startupTIme_2 && AC_Available==0)
 	LDS        R18, _SecondsRealTime+0
 	LDS        R19, _SecondsRealTime+1
@@ -1057,39 +1069,39 @@ L__Check_Timers720:
 	LDS        R17, _startupTIme_2+1
 	CP         R18, R16
 	CPC        R19, R17
-	BRSH       L__Check_Timers964
-	JMP        L__Check_Timers723
-L__Check_Timers964:
+	BRSH       L__Check_Timers984
+	JMP        L__Check_Timers731
+L__Check_Timers984:
 	IN         R27, PIND+0
 	SBRC       R27, 3
-	JMP        L__Check_Timers722
-L__Check_Timers664:
+	JMP        L__Check_Timers730
+L__Check_Timers672:
 ;Solar_Auto_Switcher.c,420 :: 		Relay_L_Solar_2=1;
 	IN         R27, PORTD+0
 	SBR        R27, 128
 	OUT        PORTD+0, R27
 ;Solar_Auto_Switcher.c,417 :: 		if(SecondsRealTime >= startupTIme_2 && AC_Available==0)
-L__Check_Timers723:
-L__Check_Timers722:
+L__Check_Timers731:
+L__Check_Timers730:
 ;Solar_Auto_Switcher.c,422 :: 		ToggleBuzzer();
 	CALL       _ToggleBuzzer+0
 ;Solar_Auto_Switcher.c,406 :: 		if(AC_Available==0 &&   VoltageProtectionEnable==0 )   // voltage protector is not enabled
-L__Check_Timers725:
-L__Check_Timers724:
+L__Check_Timers733:
+L__Check_Timers732:
 ;Solar_Auto_Switcher.c,431 :: 		if (AC_Available==0 && SecondsRealTime==startupTIme_2)
 	IN         R27, PIND+0
 	SBRC       R27, 3
-	JMP        L__Check_Timers727
+	JMP        L__Check_Timers735
 	LDS        R18, _SecondsRealTime+0
 	LDS        R19, _SecondsRealTime+1
 	LDS        R16, _startupTIme_2+0
 	LDS        R17, _startupTIme_2+1
 	CP         R18, R16
 	CPC        R19, R17
-	BREQ       L__Check_Timers965
-	JMP        L__Check_Timers726
-L__Check_Timers965:
-L__Check_Timers663:
+	BREQ       L__Check_Timers985
+	JMP        L__Check_Timers734
+L__Check_Timers985:
+L__Check_Timers671:
 ;Solar_Auto_Switcher.c,433 :: 		LCD_Init();
 	CALL       _Lcd_Init+0
 ;Solar_Auto_Switcher.c,434 :: 		LCD_CMD(_LCD_CLEAR);
@@ -1101,17 +1113,17 @@ L__Check_Timers663:
 	MOV        R2, R27
 	CALL       _Lcd_Cmd+0
 ;Solar_Auto_Switcher.c,431 :: 		if (AC_Available==0 && SecondsRealTime==startupTIme_2)
-L__Check_Timers727:
-L__Check_Timers726:
+L__Check_Timers735:
+L__Check_Timers734:
 ;Solar_Auto_Switcher.c,443 :: 		if (AC_Available==1 && Timer_isOn==1 && Vin_Battery >= StartLoadsVoltage && RunWithOutBattery==false && TurnOffLoadsByPass==0 )
 	IN         R27, PIND+0
 	SBRS       R27, 3
-	JMP        L__Check_Timers732
+	JMP        L__Check_Timers740
 	LDS        R16, _Timer_isOn+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers966
-	JMP        L__Check_Timers731
-L__Check_Timers966:
+	BREQ       L__Check_Timers986
+	JMP        L__Check_Timers739
+L__Check_Timers986:
 	LDS        R20, _StartLoadsVoltage+0
 	LDS        R21, _StartLoadsVoltage+1
 	LDS        R22, _StartLoadsVoltage+2
@@ -1123,24 +1135,24 @@ L__Check_Timers966:
 	CALL       _float_op_gequ+0
 	OR         R0, R0
 	LDI        R16, 0
-	BREQ       L__Check_Timers967
+	BREQ       L__Check_Timers987
 	LDI        R16, 1
-L__Check_Timers967:
+L__Check_Timers987:
 	TST        R16
-	BRNE       L__Check_Timers968
-	JMP        L__Check_Timers730
-L__Check_Timers968:
+	BRNE       L__Check_Timers988
+	JMP        L__Check_Timers738
+L__Check_Timers988:
 	LDS        R16, _RunWithOutBattery+0
 	CPI        R16, 0
-	BREQ       L__Check_Timers969
-	JMP        L__Check_Timers729
-L__Check_Timers969:
+	BREQ       L__Check_Timers989
+	JMP        L__Check_Timers737
+L__Check_Timers989:
 	LDS        R16, _TurnOffLoadsByPass+0
 	CPI        R16, 0
-	BREQ       L__Check_Timers970
-	JMP        L__Check_Timers728
-L__Check_Timers970:
-L__Check_Timers662:
+	BREQ       L__Check_Timers990
+	JMP        L__Check_Timers736
+L__Check_Timers990:
+L__Check_Timers670:
 ;Solar_Auto_Switcher.c,446 :: 		SecondsRealTimePv_ReConnect_T1++;
 	LDS        R16, _SecondsRealTimePv_ReConnect_T1+0
 	LDS        R17, _SecondsRealTimePv_ReConnect_T1+1
@@ -1167,39 +1179,39 @@ L_Check_Timers83:
 	LDS        R17, _startupTIme_1+1
 	CP         R16, R18
 	CPC        R17, R19
-	BRLO       L__Check_Timers971
+	BRLO       L__Check_Timers991
 	JMP        L_Check_Timers85
-L__Check_Timers971:
+L__Check_Timers991:
 	IN         R27, PORTD+0
 	SBR        R27, 64
 	OUT        PORTD+0, R27
 L_Check_Timers85:
 ;Solar_Auto_Switcher.c,443 :: 		if (AC_Available==1 && Timer_isOn==1 && Vin_Battery >= StartLoadsVoltage && RunWithOutBattery==false && TurnOffLoadsByPass==0 )
-L__Check_Timers732:
-L__Check_Timers731:
-L__Check_Timers730:
-L__Check_Timers729:
-L__Check_Timers728:
+L__Check_Timers740:
+L__Check_Timers739:
+L__Check_Timers738:
+L__Check_Timers737:
+L__Check_Timers736:
 ;Solar_Auto_Switcher.c,451 :: 		if (AC_Available==1 && Timer_isOn==1  && RunWithOutBattery==true && TurnOffLoadsByPass==0 )
 	IN         R27, PIND+0
 	SBRS       R27, 3
-	JMP        L__Check_Timers736
+	JMP        L__Check_Timers744
 	LDS        R16, _Timer_isOn+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers972
-	JMP        L__Check_Timers735
-L__Check_Timers972:
+	BREQ       L__Check_Timers992
+	JMP        L__Check_Timers743
+L__Check_Timers992:
 	LDS        R16, _RunWithOutBattery+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers973
-	JMP        L__Check_Timers734
-L__Check_Timers973:
+	BREQ       L__Check_Timers993
+	JMP        L__Check_Timers742
+L__Check_Timers993:
 	LDS        R16, _TurnOffLoadsByPass+0
 	CPI        R16, 0
-	BREQ       L__Check_Timers974
-	JMP        L__Check_Timers733
-L__Check_Timers974:
-L__Check_Timers661:
+	BREQ       L__Check_Timers994
+	JMP        L__Check_Timers741
+L__Check_Timers994:
+L__Check_Timers669:
 ;Solar_Auto_Switcher.c,453 :: 		SecondsRealTimePv_ReConnect_T1++;
 	LDS        R16, _SecondsRealTimePv_ReConnect_T1+0
 	LDS        R17, _SecondsRealTimePv_ReConnect_T1+1
@@ -1226,27 +1238,27 @@ L_Check_Timers89:
 	LDS        R17, _startupTIme_1+1
 	CP         R16, R18
 	CPC        R17, R19
-	BRLO       L__Check_Timers975
+	BRLO       L__Check_Timers995
 	JMP        L_Check_Timers91
-L__Check_Timers975:
+L__Check_Timers995:
 	IN         R27, PORTD+0
 	SBR        R27, 64
 	OUT        PORTD+0, R27
 L_Check_Timers91:
 ;Solar_Auto_Switcher.c,451 :: 		if (AC_Available==1 && Timer_isOn==1  && RunWithOutBattery==true && TurnOffLoadsByPass==0 )
-L__Check_Timers736:
-L__Check_Timers735:
-L__Check_Timers734:
-L__Check_Timers733:
+L__Check_Timers744:
+L__Check_Timers743:
+L__Check_Timers742:
+L__Check_Timers741:
 ;Solar_Auto_Switcher.c,460 :: 		if (AC_Available==1 && Timer_2_isOn==1 && Vin_Battery >= StartLoadsVoltage_T2 && RunWithOutBattery==false && TurnOffLoadsByPass==0)     //run with battery
 	IN         R27, PIND+0
 	SBRS       R27, 3
-	JMP        L__Check_Timers741
+	JMP        L__Check_Timers749
 	LDS        R16, _Timer_2_isOn+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers976
-	JMP        L__Check_Timers740
-L__Check_Timers976:
+	BREQ       L__Check_Timers996
+	JMP        L__Check_Timers748
+L__Check_Timers996:
 	LDS        R20, _StartLoadsVoltage_T2+0
 	LDS        R21, _StartLoadsVoltage_T2+1
 	LDS        R22, _StartLoadsVoltage_T2+2
@@ -1258,24 +1270,24 @@ L__Check_Timers976:
 	CALL       _float_op_gequ+0
 	OR         R0, R0
 	LDI        R16, 0
-	BREQ       L__Check_Timers977
+	BREQ       L__Check_Timers997
 	LDI        R16, 1
-L__Check_Timers977:
+L__Check_Timers997:
 	TST        R16
-	BRNE       L__Check_Timers978
-	JMP        L__Check_Timers739
-L__Check_Timers978:
+	BRNE       L__Check_Timers998
+	JMP        L__Check_Timers747
+L__Check_Timers998:
 	LDS        R16, _RunWithOutBattery+0
 	CPI        R16, 0
-	BREQ       L__Check_Timers979
-	JMP        L__Check_Timers738
-L__Check_Timers979:
+	BREQ       L__Check_Timers999
+	JMP        L__Check_Timers746
+L__Check_Timers999:
 	LDS        R16, _TurnOffLoadsByPass+0
 	CPI        R16, 0
-	BREQ       L__Check_Timers980
-	JMP        L__Check_Timers737
-L__Check_Timers980:
-L__Check_Timers660:
+	BREQ       L__Check_Timers1000
+	JMP        L__Check_Timers745
+L__Check_Timers1000:
+L__Check_Timers668:
 ;Solar_Auto_Switcher.c,462 :: 		SecondsRealTimePv_ReConnect_T2++;
 	LDS        R16, _SecondsRealTimePv_ReConnect_T2+0
 	LDS        R17, _SecondsRealTimePv_ReConnect_T2+1
@@ -1301,40 +1313,40 @@ L_Check_Timers95:
 	LDS        R17, _startupTIme_2+1
 	CP         R16, R18
 	CPC        R17, R19
-	BRLO       L__Check_Timers981
+	BRLO       L__Check_Timers1001
 	JMP        L_Check_Timers97
-L__Check_Timers981:
+L__Check_Timers1001:
 ;Solar_Auto_Switcher.c,465 :: 		Relay_L_Solar_2=1;
 	IN         R27, PORTD+0
 	SBR        R27, 128
 	OUT        PORTD+0, R27
 L_Check_Timers97:
 ;Solar_Auto_Switcher.c,460 :: 		if (AC_Available==1 && Timer_2_isOn==1 && Vin_Battery >= StartLoadsVoltage_T2 && RunWithOutBattery==false && TurnOffLoadsByPass==0)     //run with battery
-L__Check_Timers741:
-L__Check_Timers740:
-L__Check_Timers739:
-L__Check_Timers738:
-L__Check_Timers737:
+L__Check_Timers749:
+L__Check_Timers748:
+L__Check_Timers747:
+L__Check_Timers746:
+L__Check_Timers745:
 ;Solar_Auto_Switcher.c,468 :: 		if (AC_Available==1 && Timer_2_isOn==1 &&  RunWithOutBattery==true && TurnOffLoadsByPass==0)            //run without battery
 	IN         R27, PIND+0
 	SBRS       R27, 3
-	JMP        L__Check_Timers745
+	JMP        L__Check_Timers753
 	LDS        R16, _Timer_2_isOn+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers982
-	JMP        L__Check_Timers744
-L__Check_Timers982:
+	BREQ       L__Check_Timers1002
+	JMP        L__Check_Timers752
+L__Check_Timers1002:
 	LDS        R16, _RunWithOutBattery+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers983
-	JMP        L__Check_Timers743
-L__Check_Timers983:
+	BREQ       L__Check_Timers1003
+	JMP        L__Check_Timers751
+L__Check_Timers1003:
 	LDS        R16, _TurnOffLoadsByPass+0
 	CPI        R16, 0
-	BREQ       L__Check_Timers984
-	JMP        L__Check_Timers742
-L__Check_Timers984:
-L__Check_Timers659:
+	BREQ       L__Check_Timers1004
+	JMP        L__Check_Timers750
+L__Check_Timers1004:
+L__Check_Timers667:
 ;Solar_Auto_Switcher.c,470 :: 		SecondsRealTimePv_ReConnect_T2++;
 	LDS        R16, _SecondsRealTimePv_ReConnect_T2+0
 	LDS        R17, _SecondsRealTimePv_ReConnect_T2+1
@@ -1360,19 +1372,19 @@ L_Check_Timers101:
 	LDS        R17, _startupTIme_2+1
 	CP         R16, R18
 	CPC        R17, R19
-	BRLO       L__Check_Timers985
+	BRLO       L__Check_Timers1005
 	JMP        L_Check_Timers103
-L__Check_Timers985:
+L__Check_Timers1005:
 ;Solar_Auto_Switcher.c,473 :: 		Relay_L_Solar_2=1;
 	IN         R27, PORTD+0
 	SBR        R27, 128
 	OUT        PORTD+0, R27
 L_Check_Timers103:
 ;Solar_Auto_Switcher.c,468 :: 		if (AC_Available==1 && Timer_2_isOn==1 &&  RunWithOutBattery==true && TurnOffLoadsByPass==0)            //run without battery
-L__Check_Timers745:
-L__Check_Timers744:
-L__Check_Timers743:
-L__Check_Timers742:
+L__Check_Timers753:
+L__Check_Timers752:
+L__Check_Timers751:
+L__Check_Timers750:
 ;Solar_Auto_Switcher.c,477 :: 		if (Vin_Battery<Mini_Battery_Voltage && AC_Available==1 && Timer_isOn==1 && RunWithOutBattery==false)
 	LDS        R20, _Mini_Battery_Voltage+0
 	LDS        R21, _Mini_Battery_Voltage+1
@@ -1385,27 +1397,27 @@ L__Check_Timers742:
 	CALL       _float_op_less+0
 	OR         R0, R0
 	LDI        R16, 0
-	BREQ       L__Check_Timers986
+	BREQ       L__Check_Timers1006
 	LDI        R16, 1
-L__Check_Timers986:
+L__Check_Timers1006:
 	TST        R16
-	BRNE       L__Check_Timers987
-	JMP        L__Check_Timers749
-L__Check_Timers987:
+	BRNE       L__Check_Timers1007
+	JMP        L__Check_Timers757
+L__Check_Timers1007:
 	IN         R27, PIND+0
 	SBRS       R27, 3
-	JMP        L__Check_Timers748
+	JMP        L__Check_Timers756
 	LDS        R16, _Timer_isOn+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers988
-	JMP        L__Check_Timers747
-L__Check_Timers988:
+	BREQ       L__Check_Timers1008
+	JMP        L__Check_Timers755
+L__Check_Timers1008:
 	LDS        R16, _RunWithOutBattery+0
 	CPI        R16, 0
-	BREQ       L__Check_Timers989
-	JMP        L__Check_Timers746
-L__Check_Timers989:
-L__Check_Timers658:
+	BREQ       L__Check_Timers1009
+	JMP        L__Check_Timers754
+L__Check_Timers1009:
+L__Check_Timers666:
 ;Solar_Auto_Switcher.c,479 :: 		SecondsRealTimePv_ReConnect_T1=0;
 	LDI        R27, 0
 	STS        _SecondsRealTimePv_ReConnect_T1+0, R27
@@ -1413,10 +1425,10 @@ L__Check_Timers658:
 ;Solar_Auto_Switcher.c,480 :: 		Start_Timer_0_A();         // give some time for battery voltage
 	CALL       _Start_Timer_0_A+0
 ;Solar_Auto_Switcher.c,477 :: 		if (Vin_Battery<Mini_Battery_Voltage && AC_Available==1 && Timer_isOn==1 && RunWithOutBattery==false)
-L__Check_Timers749:
-L__Check_Timers748:
-L__Check_Timers747:
-L__Check_Timers746:
+L__Check_Timers757:
+L__Check_Timers756:
+L__Check_Timers755:
+L__Check_Timers754:
 ;Solar_Auto_Switcher.c,484 :: 		if (Vin_Battery<Mini_Battery_Voltage_T2 && AC_Available==1 &&  Timer_2_isOn==1 && RunWithOutBattery==false)
 	LDS        R20, _Mini_Battery_Voltage_T2+0
 	LDS        R21, _Mini_Battery_Voltage_T2+1
@@ -1429,27 +1441,27 @@ L__Check_Timers746:
 	CALL       _float_op_less+0
 	OR         R0, R0
 	LDI        R16, 0
-	BREQ       L__Check_Timers990
+	BREQ       L__Check_Timers1010
 	LDI        R16, 1
-L__Check_Timers990:
+L__Check_Timers1010:
 	TST        R16
-	BRNE       L__Check_Timers991
-	JMP        L__Check_Timers753
-L__Check_Timers991:
+	BRNE       L__Check_Timers1011
+	JMP        L__Check_Timers761
+L__Check_Timers1011:
 	IN         R27, PIND+0
 	SBRS       R27, 3
-	JMP        L__Check_Timers752
+	JMP        L__Check_Timers760
 	LDS        R16, _Timer_2_isOn+0
 	CPI        R16, 1
-	BREQ       L__Check_Timers992
-	JMP        L__Check_Timers751
-L__Check_Timers992:
+	BREQ       L__Check_Timers1012
+	JMP        L__Check_Timers759
+L__Check_Timers1012:
 	LDS        R16, _RunWithOutBattery+0
 	CPI        R16, 0
-	BREQ       L__Check_Timers993
-	JMP        L__Check_Timers750
-L__Check_Timers993:
-L__Check_Timers657:
+	BREQ       L__Check_Timers1013
+	JMP        L__Check_Timers758
+L__Check_Timers1013:
+L__Check_Timers665:
 ;Solar_Auto_Switcher.c,486 :: 		SecondsRealTimePv_ReConnect_T2=0;
 	LDI        R27, 0
 	STS        _SecondsRealTimePv_ReConnect_T2+0, R27
@@ -1457,10 +1469,10 @@ L__Check_Timers657:
 ;Solar_Auto_Switcher.c,487 :: 		Start_Timer_0_A();         // give some time for battery voltage
 	CALL       _Start_Timer_0_A+0
 ;Solar_Auto_Switcher.c,484 :: 		if (Vin_Battery<Mini_Battery_Voltage_T2 && AC_Available==1 &&  Timer_2_isOn==1 && RunWithOutBattery==false)
-L__Check_Timers753:
-L__Check_Timers752:
-L__Check_Timers751:
-L__Check_Timers750:
+L__Check_Timers761:
+L__Check_Timers760:
+L__Check_Timers759:
+L__Check_Timers758:
 ;Solar_Auto_Switcher.c,490 :: 		}// end of check timers
 L_end_Check_Timers:
 	POP        R4
@@ -1544,9 +1556,9 @@ _ToggleBuzzer:
 ;Solar_Auto_Switcher.c,503 :: 		if (AcBuzzerActiveTimes==0)
 	LDS        R16, _AcBuzzerActiveTimes+0
 	CPI        R16, 0
-	BREQ       L__ToggleBuzzer996
+	BREQ       L__ToggleBuzzer1016
 	JMP        L_ToggleBuzzer110
-L__ToggleBuzzer996:
+L__ToggleBuzzer1016:
 ;Solar_Auto_Switcher.c,505 :: 		AcBuzzerActiveTimes =1 ;
 	LDI        R27, 1
 	STS        _AcBuzzerActiveTimes+0, R27
@@ -1823,13 +1835,13 @@ L_SetTimerOn_1134:
 L_SetTimerOn_1135:
 	IN         R27, PIND+0
 	SBRC       R27, 0
-	JMP        L__SetTimerOn_1758
+	JMP        L__SetTimerOn_1766
 	IN         R27, PIND+0
 	SBRC       R27, 1
-	JMP        L__SetTimerOn_1757
+	JMP        L__SetTimerOn_1765
 	JMP        L_SetTimerOn_1136
-L__SetTimerOn_1758:
-L__SetTimerOn_1757:
+L__SetTimerOn_1766:
+L__SetTimerOn_1765:
 ;Solar_Auto_Switcher.c,599 :: 		if (Increment==1  )
 	IN         R27, PIND+0
 	SBRS       R27, 0
@@ -1878,18 +1890,18 @@ L_SetTimerOn_1142:
 	LDS        R17, _minutes_lcd_1+0
 	LDI        R16, 59
 	CP         R16, R17
-	BRLO       L__SetTimerOn_1999
+	BRLO       L__SetTimerOn_11019
 	JMP        L_SetTimerOn_1145
-L__SetTimerOn_1999:
+L__SetTimerOn_11019:
 	LDI        R27, 0
 	STS        _minutes_lcd_1+0, R27
 L_SetTimerOn_1145:
 ;Solar_Auto_Switcher.c,611 :: 		if (minutes_lcd_1<0) minutes_lcd_1=0;
 	LDS        R16, _minutes_lcd_1+0
 	CPI        R16, 0
-	BRLO       L__SetTimerOn_11000
+	BRLO       L__SetTimerOn_11020
 	JMP        L_SetTimerOn_1146
-L__SetTimerOn_11000:
+L__SetTimerOn_11020:
 	LDI        R27, 0
 	STS        _minutes_lcd_1+0, R27
 L_SetTimerOn_1146:
@@ -1960,13 +1972,13 @@ L_SetTimerOn_1151:
 L_SetTimerOn_1152:
 	IN         R27, PIND+0
 	SBRC       R27, 0
-	JMP        L__SetTimerOn_1760
+	JMP        L__SetTimerOn_1768
 	IN         R27, PIND+0
 	SBRC       R27, 1
-	JMP        L__SetTimerOn_1759
+	JMP        L__SetTimerOn_1767
 	JMP        L_SetTimerOn_1153
-L__SetTimerOn_1760:
-L__SetTimerOn_1759:
+L__SetTimerOn_1768:
+L__SetTimerOn_1767:
 ;Solar_Auto_Switcher.c,634 :: 		if (Increment==1)
 	IN         R27, PIND+0
 	SBRS       R27, 0
@@ -2015,18 +2027,18 @@ L_SetTimerOn_1159:
 	LDS        R17, _hours_lcd_1+0
 	LDI        R16, 23
 	CP         R16, R17
-	BRLO       L__SetTimerOn_11001
+	BRLO       L__SetTimerOn_11021
 	JMP        L_SetTimerOn_1162
-L__SetTimerOn_11001:
+L__SetTimerOn_11021:
 	LDI        R27, 0
 	STS        _hours_lcd_1+0, R27
 L_SetTimerOn_1162:
 ;Solar_Auto_Switcher.c,646 :: 		if  (hours_lcd_1<0) hours_lcd_1=0;
 	LDS        R16, _hours_lcd_1+0
 	CPI        R16, 0
-	BRLO       L__SetTimerOn_11002
+	BRLO       L__SetTimerOn_11022
 	JMP        L_SetTimerOn_1163
-L__SetTimerOn_11002:
+L__SetTimerOn_11022:
 	LDI        R27, 0
 	STS        _hours_lcd_1+0, R27
 L_SetTimerOn_1163:
@@ -2171,13 +2183,13 @@ L_SetTimerOff_1168:
 L_SetTimerOff_1169:
 	IN         R27, PIND+0
 	SBRC       R27, 0
-	JMP        L__SetTimerOff_1764
+	JMP        L__SetTimerOff_1772
 	IN         R27, PIND+0
 	SBRC       R27, 1
-	JMP        L__SetTimerOff_1763
+	JMP        L__SetTimerOff_1771
 	JMP        L_SetTimerOff_1170
-L__SetTimerOff_1764:
-L__SetTimerOff_1763:
+L__SetTimerOff_1772:
+L__SetTimerOff_1771:
 ;Solar_Auto_Switcher.c,682 :: 		if (Increment==1)
 	IN         R27, PIND+0
 	SBRS       R27, 0
@@ -2226,18 +2238,18 @@ L_SetTimerOff_1176:
 	LDS        R17, _minutes_lcd_2+0
 	LDI        R16, 59
 	CP         R16, R17
-	BRLO       L__SetTimerOff_11004
+	BRLO       L__SetTimerOff_11024
 	JMP        L_SetTimerOff_1179
-L__SetTimerOff_11004:
+L__SetTimerOff_11024:
 	LDI        R27, 0
 	STS        _minutes_lcd_2+0, R27
 L_SetTimerOff_1179:
 ;Solar_Auto_Switcher.c,694 :: 		if (minutes_lcd_2<0) minutes_lcd_2=0;
 	LDS        R16, _minutes_lcd_2+0
 	CPI        R16, 0
-	BRLO       L__SetTimerOff_11005
+	BRLO       L__SetTimerOff_11025
 	JMP        L_SetTimerOff_1180
-L__SetTimerOff_11005:
+L__SetTimerOff_11025:
 	LDI        R27, 0
 	STS        _minutes_lcd_2+0, R27
 L_SetTimerOff_1180:
@@ -2308,13 +2320,13 @@ L_SetTimerOff_1185:
 L_SetTimerOff_1186:
 	IN         R27, PIND+0
 	SBRC       R27, 0
-	JMP        L__SetTimerOff_1766
+	JMP        L__SetTimerOff_1774
 	IN         R27, PIND+0
 	SBRC       R27, 1
-	JMP        L__SetTimerOff_1765
+	JMP        L__SetTimerOff_1773
 	JMP        L_SetTimerOff_1187
-L__SetTimerOff_1766:
-L__SetTimerOff_1765:
+L__SetTimerOff_1774:
+L__SetTimerOff_1773:
 ;Solar_Auto_Switcher.c,717 :: 		if (Increment==1)
 	IN         R27, PIND+0
 	SBRS       R27, 0
@@ -2363,18 +2375,18 @@ L_SetTimerOff_1193:
 	LDS        R17, _hours_lcd_2+0
 	LDI        R16, 23
 	CP         R16, R17
-	BRLO       L__SetTimerOff_11006
+	BRLO       L__SetTimerOff_11026
 	JMP        L_SetTimerOff_1196
-L__SetTimerOff_11006:
+L__SetTimerOff_11026:
 	LDI        R27, 0
 	STS        _hours_lcd_2+0, R27
 L_SetTimerOff_1196:
 ;Solar_Auto_Switcher.c,728 :: 		if (hours_lcd_2<0 ) hours_lcd_2=0;
 	LDS        R16, _hours_lcd_2+0
 	CPI        R16, 0
-	BRLO       L__SetTimerOff_11007
+	BRLO       L__SetTimerOff_11027
 	JMP        L_SetTimerOff_1197
-L__SetTimerOff_11007:
+L__SetTimerOff_11027:
 	LDI        R27, 0
 	STS        _hours_lcd_2+0, R27
 L_SetTimerOff_1197:
@@ -2520,13 +2532,13 @@ L_SetTimerOn_2202:
 L_SetTimerOn_2203:
 	IN         R27, PIND+0
 	SBRC       R27, 0
-	JMP        L__SetTimerOn_2770
+	JMP        L__SetTimerOn_2778
 	IN         R27, PIND+0
 	SBRC       R27, 1
-	JMP        L__SetTimerOn_2769
+	JMP        L__SetTimerOn_2777
 	JMP        L_SetTimerOn_2204
-L__SetTimerOn_2770:
-L__SetTimerOn_2769:
+L__SetTimerOn_2778:
+L__SetTimerOn_2777:
 ;Solar_Auto_Switcher.c,765 :: 		if (Increment==1  )
 	IN         R27, PIND+0
 	SBRS       R27, 0
@@ -2575,18 +2587,18 @@ L_SetTimerOn_2210:
 	LDS        R17, _minutes_lcd_timer2_start+0
 	LDI        R16, 59
 	CP         R16, R17
-	BRLO       L__SetTimerOn_21009
+	BRLO       L__SetTimerOn_21029
 	JMP        L_SetTimerOn_2213
-L__SetTimerOn_21009:
+L__SetTimerOn_21029:
 	LDI        R27, 0
 	STS        _minutes_lcd_timer2_start+0, R27
 L_SetTimerOn_2213:
 ;Solar_Auto_Switcher.c,777 :: 		if (minutes_lcd_timer2_start<0)  minutes_lcd_timer2_start=0;
 	LDS        R16, _minutes_lcd_timer2_start+0
 	CPI        R16, 0
-	BRLO       L__SetTimerOn_21010
+	BRLO       L__SetTimerOn_21030
 	JMP        L_SetTimerOn_2214
-L__SetTimerOn_21010:
+L__SetTimerOn_21030:
 	LDI        R27, 0
 	STS        _minutes_lcd_timer2_start+0, R27
 L_SetTimerOn_2214:
@@ -2649,13 +2661,13 @@ L_SetTimerOn_2219:
 L_SetTimerOn_2220:
 	IN         R27, PIND+0
 	SBRC       R27, 0
-	JMP        L__SetTimerOn_2772
+	JMP        L__SetTimerOn_2780
 	IN         R27, PIND+0
 	SBRC       R27, 1
-	JMP        L__SetTimerOn_2771
+	JMP        L__SetTimerOn_2779
 	JMP        L_SetTimerOn_2221
-L__SetTimerOn_2772:
-L__SetTimerOn_2771:
+L__SetTimerOn_2780:
+L__SetTimerOn_2779:
 ;Solar_Auto_Switcher.c,801 :: 		if (Increment==1)
 	IN         R27, PIND+0
 	SBRS       R27, 0
@@ -2704,18 +2716,18 @@ L_SetTimerOn_2227:
 	LDS        R17, _hours_lcd_timer2_start+0
 	LDI        R16, 23
 	CP         R16, R17
-	BRLO       L__SetTimerOn_21011
+	BRLO       L__SetTimerOn_21031
 	JMP        L_SetTimerOn_2230
-L__SetTimerOn_21011:
+L__SetTimerOn_21031:
 	LDI        R27, 0
 	STS        _hours_lcd_timer2_start+0, R27
 L_SetTimerOn_2230:
 ;Solar_Auto_Switcher.c,813 :: 		if  (hours_lcd_timer2_start<0) hours_lcd_timer2_start=0;
 	LDS        R16, _hours_lcd_timer2_start+0
 	CPI        R16, 0
-	BRLO       L__SetTimerOn_21012
+	BRLO       L__SetTimerOn_21032
 	JMP        L_SetTimerOn_2231
-L__SetTimerOn_21012:
+L__SetTimerOn_21032:
 	LDI        R27, 0
 	STS        _hours_lcd_timer2_start+0, R27
 L_SetTimerOn_2231:
@@ -2852,13 +2864,13 @@ L_SetTimerOff_2236:
 L_SetTimerOff_2237:
 	IN         R27, PIND+0
 	SBRC       R27, 0
-	JMP        L__SetTimerOff_2776
+	JMP        L__SetTimerOff_2784
 	IN         R27, PIND+0
 	SBRC       R27, 1
-	JMP        L__SetTimerOff_2775
+	JMP        L__SetTimerOff_2783
 	JMP        L_SetTimerOff_2238
-L__SetTimerOff_2776:
-L__SetTimerOff_2775:
+L__SetTimerOff_2784:
+L__SetTimerOff_2783:
 ;Solar_Auto_Switcher.c,845 :: 		if (Increment==1)
 	IN         R27, PIND+0
 	SBRS       R27, 0
@@ -2907,18 +2919,18 @@ L_SetTimerOff_2244:
 	LDS        R17, _minutes_lcd_timer2_stop+0
 	LDI        R16, 59
 	CP         R16, R17
-	BRLO       L__SetTimerOff_21014
+	BRLO       L__SetTimerOff_21034
 	JMP        L_SetTimerOff_2247
-L__SetTimerOff_21014:
+L__SetTimerOff_21034:
 	LDI        R27, 0
 	STS        _minutes_lcd_timer2_stop+0, R27
 L_SetTimerOff_2247:
 ;Solar_Auto_Switcher.c,857 :: 		if (minutes_lcd_timer2_stop<0) minutes_lcd_timer2_stop=0;
 	LDS        R16, _minutes_lcd_timer2_stop+0
 	CPI        R16, 0
-	BRLO       L__SetTimerOff_21015
+	BRLO       L__SetTimerOff_21035
 	JMP        L_SetTimerOff_2248
-L__SetTimerOff_21015:
+L__SetTimerOff_21035:
 	LDI        R27, 0
 	STS        _minutes_lcd_timer2_stop+0, R27
 L_SetTimerOff_2248:
@@ -2989,13 +3001,13 @@ L_SetTimerOff_2253:
 L_SetTimerOff_2254:
 	IN         R27, PIND+0
 	SBRC       R27, 0
-	JMP        L__SetTimerOff_2778
+	JMP        L__SetTimerOff_2786
 	IN         R27, PIND+0
 	SBRC       R27, 1
-	JMP        L__SetTimerOff_2777
+	JMP        L__SetTimerOff_2785
 	JMP        L_SetTimerOff_2255
-L__SetTimerOff_2778:
-L__SetTimerOff_2777:
+L__SetTimerOff_2786:
+L__SetTimerOff_2785:
 ;Solar_Auto_Switcher.c,882 :: 		if (Increment==1)
 	IN         R27, PIND+0
 	SBRS       R27, 0
@@ -3044,18 +3056,18 @@ L_SetTimerOff_2261:
 	LDS        R17, _hours_lcd_timer2_stop+0
 	LDI        R16, 23
 	CP         R16, R17
-	BRLO       L__SetTimerOff_21016
+	BRLO       L__SetTimerOff_21036
 	JMP        L_SetTimerOff_2264
-L__SetTimerOff_21016:
+L__SetTimerOff_21036:
 	LDI        R27, 0
 	STS        _hours_lcd_timer2_stop+0, R27
 L_SetTimerOff_2264:
 ;Solar_Auto_Switcher.c,893 :: 		if (hours_lcd_timer2_stop<0 ) hours_lcd_timer2_stop=0;
 	LDS        R16, _hours_lcd_timer2_stop+0
 	CPI        R16, 0
-	BRLO       L__SetTimerOff_21017
+	BRLO       L__SetTimerOff_21037
 	JMP        L_SetTimerOff_2265
-L__SetTimerOff_21017:
+L__SetTimerOff_21037:
 	LDI        R27, 0
 	STS        _hours_lcd_timer2_stop+0, R27
 L_SetTimerOff_2265:
@@ -3190,13 +3202,13 @@ L_SetDS1307_Time270:
 L_SetDS1307_Time271:
 	IN         R27, PIND+0
 	SBRC       R27, 0
-	JMP        L__SetDS1307_Time798
+	JMP        L__SetDS1307_Time806
 	IN         R27, PIND+0
 	SBRC       R27, 1
-	JMP        L__SetDS1307_Time797
+	JMP        L__SetDS1307_Time805
 	JMP        L_SetDS1307_Time272
-L__SetDS1307_Time798:
-L__SetDS1307_Time797:
+L__SetDS1307_Time806:
+L__SetDS1307_Time805:
 ;Solar_Auto_Switcher.c,930 :: 		if (Increment==1)
 	IN         R27, PIND+0
 	SBRS       R27, 0
@@ -3245,18 +3257,18 @@ L_SetDS1307_Time278:
 	LDS        R17, _set_ds1307_hours+0
 	LDI        R16, 23
 	CP         R16, R17
-	BRLO       L__SetDS1307_Time1019
+	BRLO       L__SetDS1307_Time1039
 	JMP        L_SetDS1307_Time281
-L__SetDS1307_Time1019:
+L__SetDS1307_Time1039:
 	LDI        R27, 0
 	STS        _set_ds1307_hours+0, R27
 L_SetDS1307_Time281:
 ;Solar_Auto_Switcher.c,942 :: 		if (set_ds1307_hours<0) set_ds1307_hours=0;
 	LDS        R16, _set_ds1307_hours+0
 	CPI        R16, 0
-	BRLO       L__SetDS1307_Time1020
+	BRLO       L__SetDS1307_Time1040
 	JMP        L_SetDS1307_Time282
-L__SetDS1307_Time1020:
+L__SetDS1307_Time1040:
 	LDI        R27, 0
 	STS        _set_ds1307_hours+0, R27
 L_SetDS1307_Time282:
@@ -3340,13 +3352,13 @@ L_SetDS1307_Time289:
 L_SetDS1307_Time290:
 	IN         R27, PIND+0
 	SBRC       R27, 0
-	JMP        L__SetDS1307_Time800
+	JMP        L__SetDS1307_Time808
 	IN         R27, PIND+0
 	SBRC       R27, 1
-	JMP        L__SetDS1307_Time799
+	JMP        L__SetDS1307_Time807
 	JMP        L_SetDS1307_Time291
-L__SetDS1307_Time800:
-L__SetDS1307_Time799:
+L__SetDS1307_Time808:
+L__SetDS1307_Time807:
 ;Solar_Auto_Switcher.c,963 :: 		if (Increment==1)
 	IN         R27, PIND+0
 	SBRS       R27, 0
@@ -3395,18 +3407,18 @@ L_SetDS1307_Time297:
 	LDS        R17, _set_ds1307_minutes+0
 	LDI        R16, 59
 	CP         R16, R17
-	BRLO       L__SetDS1307_Time1021
+	BRLO       L__SetDS1307_Time1041
 	JMP        L_SetDS1307_Time300
-L__SetDS1307_Time1021:
+L__SetDS1307_Time1041:
 	LDI        R27, 0
 	STS        _set_ds1307_minutes+0, R27
 L_SetDS1307_Time300:
 ;Solar_Auto_Switcher.c,975 :: 		if(set_ds1307_minutes<0) set_ds1307_minutes=0;
 	LDS        R16, _set_ds1307_minutes+0
 	CPI        R16, 0
-	BRLO       L__SetDS1307_Time1022
+	BRLO       L__SetDS1307_Time1042
 	JMP        L_SetDS1307_Time301
-L__SetDS1307_Time1022:
+L__SetDS1307_Time1042:
 	LDI        R27, 0
 	STS        _set_ds1307_minutes+0, R27
 L_SetDS1307_Time301:
@@ -3478,13 +3490,13 @@ L_SetDS1307_Time306:
 L_SetDS1307_Time307:
 	IN         R27, PIND+0
 	SBRC       R27, 0
-	JMP        L__SetDS1307_Time802
+	JMP        L__SetDS1307_Time810
 	IN         R27, PIND+0
 	SBRC       R27, 1
-	JMP        L__SetDS1307_Time801
+	JMP        L__SetDS1307_Time809
 	JMP        L_SetDS1307_Time308
-L__SetDS1307_Time802:
-L__SetDS1307_Time801:
+L__SetDS1307_Time810:
+L__SetDS1307_Time809:
 ;Solar_Auto_Switcher.c,994 :: 		if (Increment==1)
 	IN         R27, PIND+0
 	SBRS       R27, 0
@@ -3533,18 +3545,18 @@ L_SetDS1307_Time314:
 	LDS        R17, _set_ds1307_seconds+0
 	LDI        R16, 59
 	CP         R16, R17
-	BRLO       L__SetDS1307_Time1023
+	BRLO       L__SetDS1307_Time1043
 	JMP        L_SetDS1307_Time317
-L__SetDS1307_Time1023:
+L__SetDS1307_Time1043:
 	LDI        R27, 0
 	STS        _set_ds1307_seconds+0, R27
 L_SetDS1307_Time317:
 ;Solar_Auto_Switcher.c,1005 :: 		if (set_ds1307_seconds<0) set_ds1307_seconds=0;
 	LDS        R16, _set_ds1307_seconds+0
 	CPI        R16, 0
-	BRLO       L__SetDS1307_Time1024
+	BRLO       L__SetDS1307_Time1044
 	JMP        L_SetDS1307_Time318
-L__SetDS1307_Time1024:
+L__SetDS1307_Time1044:
 	LDI        R27, 0
 	STS        _set_ds1307_seconds+0, R27
 L_SetDS1307_Time318:
@@ -3670,13 +3682,13 @@ L_SetDS1307_Time323:
 L_SetDS1307_Time324:
 	IN         R27, PIND+0
 	SBRC       R27, 0
-	JMP        L__SetDS1307_Time804
+	JMP        L__SetDS1307_Time812
 	IN         R27, PIND+0
 	SBRC       R27, 1
-	JMP        L__SetDS1307_Time803
+	JMP        L__SetDS1307_Time811
 	JMP        L_SetDS1307_Time325
-L__SetDS1307_Time804:
-L__SetDS1307_Time803:
+L__SetDS1307_Time812:
+L__SetDS1307_Time811:
 ;Solar_Auto_Switcher.c,1029 :: 		if (Increment==1)
 	IN         R27, PIND+0
 	SBRS       R27, 0
@@ -3725,18 +3737,18 @@ L_SetDS1307_Time331:
 	LDS        R17, _set_ds1307_day+0
 	LDI        R16, 31
 	CP         R16, R17
-	BRLO       L__SetDS1307_Time1025
+	BRLO       L__SetDS1307_Time1045
 	JMP        L_SetDS1307_Time334
-L__SetDS1307_Time1025:
+L__SetDS1307_Time1045:
 	LDI        R27, 0
 	STS        _set_ds1307_day+0, R27
 L_SetDS1307_Time334:
 ;Solar_Auto_Switcher.c,1040 :: 		if (set_ds1307_day<0) set_ds1307_day=0;
 	LDS        R16, _set_ds1307_day+0
 	CPI        R16, 0
-	BRLO       L__SetDS1307_Time1026
+	BRLO       L__SetDS1307_Time1046
 	JMP        L_SetDS1307_Time335
-L__SetDS1307_Time1026:
+L__SetDS1307_Time1046:
 	LDI        R27, 0
 	STS        _set_ds1307_day+0, R27
 L_SetDS1307_Time335:
@@ -3803,13 +3815,13 @@ L_SetDS1307_Time340:
 L_SetDS1307_Time341:
 	IN         R27, PIND+0
 	SBRC       R27, 0
-	JMP        L__SetDS1307_Time806
+	JMP        L__SetDS1307_Time814
 	IN         R27, PIND+0
 	SBRC       R27, 1
-	JMP        L__SetDS1307_Time805
+	JMP        L__SetDS1307_Time813
 	JMP        L_SetDS1307_Time342
-L__SetDS1307_Time806:
-L__SetDS1307_Time805:
+L__SetDS1307_Time814:
+L__SetDS1307_Time813:
 ;Solar_Auto_Switcher.c,1056 :: 		if (Increment==1)
 	IN         R27, PIND+0
 	SBRS       R27, 0
@@ -3858,18 +3870,18 @@ L_SetDS1307_Time348:
 	LDS        R17, _set_ds1307_month+0
 	LDI        R16, 12
 	CP         R16, R17
-	BRLO       L__SetDS1307_Time1027
+	BRLO       L__SetDS1307_Time1047
 	JMP        L_SetDS1307_Time351
-L__SetDS1307_Time1027:
+L__SetDS1307_Time1047:
 	LDI        R27, 0
 	STS        _set_ds1307_month+0, R27
 L_SetDS1307_Time351:
 ;Solar_Auto_Switcher.c,1068 :: 		if (set_ds1307_month<0) set_ds1307_month=0;
 	LDS        R16, _set_ds1307_month+0
 	CPI        R16, 0
-	BRLO       L__SetDS1307_Time1028
+	BRLO       L__SetDS1307_Time1048
 	JMP        L_SetDS1307_Time352
-L__SetDS1307_Time1028:
+L__SetDS1307_Time1048:
 	LDI        R27, 0
 	STS        _set_ds1307_month+0, R27
 L_SetDS1307_Time352:
@@ -3936,13 +3948,13 @@ L_SetDS1307_Time357:
 L_SetDS1307_Time358:
 	IN         R27, PIND+0
 	SBRC       R27, 0
-	JMP        L__SetDS1307_Time808
+	JMP        L__SetDS1307_Time816
 	IN         R27, PIND+0
 	SBRC       R27, 1
-	JMP        L__SetDS1307_Time807
+	JMP        L__SetDS1307_Time815
 	JMP        L_SetDS1307_Time359
-L__SetDS1307_Time808:
-L__SetDS1307_Time807:
+L__SetDS1307_Time816:
+L__SetDS1307_Time815:
 ;Solar_Auto_Switcher.c,1085 :: 		if (Increment==1)
 	IN         R27, PIND+0
 	SBRS       R27, 0
@@ -3991,18 +4003,18 @@ L_SetDS1307_Time365:
 	LDS        R17, _set_ds1307_year+0
 	LDI        R16, 99
 	CP         R16, R17
-	BRLO       L__SetDS1307_Time1029
+	BRLO       L__SetDS1307_Time1049
 	JMP        L_SetDS1307_Time368
-L__SetDS1307_Time1029:
+L__SetDS1307_Time1049:
 	LDI        R27, 0
 	STS        _set_ds1307_year+0, R27
 L_SetDS1307_Time368:
 ;Solar_Auto_Switcher.c,1097 :: 		if (set_ds1307_year<0) set_ds1307_year=0;
 	LDS        R16, _set_ds1307_year+0
 	CPI        R16, 0
-	BRLO       L__SetDS1307_Time1030
+	BRLO       L__SetDS1307_Time1050
 	JMP        L_SetDS1307_Time369
-L__SetDS1307_Time1030:
+L__SetDS1307_Time1050:
 	LDI        R27, 0
 	STS        _set_ds1307_year+0, R27
 L_SetDS1307_Time369:
@@ -4146,13 +4158,13 @@ L_SetLowBatteryVoltage374:
 L_SetLowBatteryVoltage375:
 	IN         R27, PIND+0
 	SBRC       R27, 0
-	JMP        L__SetLowBatteryVoltage782
+	JMP        L__SetLowBatteryVoltage790
 	IN         R27, PIND+0
 	SBRC       R27, 1
-	JMP        L__SetLowBatteryVoltage781
+	JMP        L__SetLowBatteryVoltage789
 	JMP        L_SetLowBatteryVoltage376
-L__SetLowBatteryVoltage782:
-L__SetLowBatteryVoltage781:
+L__SetLowBatteryVoltage790:
+L__SetLowBatteryVoltage789:
 ;Solar_Auto_Switcher.c,1209 :: 		if (Increment==1)
 	IN         R27, PIND+0
 	SBRS       R27, 0
@@ -4229,13 +4241,13 @@ L_SetLowBatteryVoltage382:
 	CALL       _float_op_big+0
 	OR         R0, R0
 	LDI        R16, 0
-	BREQ       L__SetLowBatteryVoltage1032
+	BREQ       L__SetLowBatteryVoltage1052
 	LDI        R16, 1
-L__SetLowBatteryVoltage1032:
+L__SetLowBatteryVoltage1052:
 	TST        R16
-	BRNE       L__SetLowBatteryVoltage1033
+	BRNE       L__SetLowBatteryVoltage1053
 	JMP        L_SetLowBatteryVoltage385
-L__SetLowBatteryVoltage1033:
+L__SetLowBatteryVoltage1053:
 	LDI        R27, 0
 	STS        _Mini_Battery_Voltage+0, R27
 	STS        _Mini_Battery_Voltage+1, R27
@@ -4254,13 +4266,13 @@ L_SetLowBatteryVoltage385:
 	CALL       _float_op_less+0
 	OR         R0, R0
 	LDI        R16, 0
-	BREQ       L__SetLowBatteryVoltage1034
+	BREQ       L__SetLowBatteryVoltage1054
 	LDI        R16, 1
-L__SetLowBatteryVoltage1034:
+L__SetLowBatteryVoltage1054:
 	TST        R16
-	BRNE       L__SetLowBatteryVoltage1035
+	BRNE       L__SetLowBatteryVoltage1055
 	JMP        L_SetLowBatteryVoltage386
-L__SetLowBatteryVoltage1035:
+L__SetLowBatteryVoltage1055:
 	LDI        R27, 0
 	STS        _Mini_Battery_Voltage+0, R27
 	STS        _Mini_Battery_Voltage+1, R27
@@ -4357,13 +4369,13 @@ L_SetLowBatteryVoltage391:
 L_SetLowBatteryVoltage392:
 	IN         R27, PIND+0
 	SBRC       R27, 0
-	JMP        L__SetLowBatteryVoltage784
+	JMP        L__SetLowBatteryVoltage792
 	IN         R27, PIND+0
 	SBRC       R27, 1
-	JMP        L__SetLowBatteryVoltage783
+	JMP        L__SetLowBatteryVoltage791
 	JMP        L_SetLowBatteryVoltage393
-L__SetLowBatteryVoltage784:
-L__SetLowBatteryVoltage783:
+L__SetLowBatteryVoltage792:
+L__SetLowBatteryVoltage791:
 ;Solar_Auto_Switcher.c,1236 :: 		if (Increment==1)
 	IN         R27, PIND+0
 	SBRS       R27, 0
@@ -4440,13 +4452,13 @@ L_SetLowBatteryVoltage399:
 	CALL       _float_op_big+0
 	OR         R0, R0
 	LDI        R16, 0
-	BREQ       L__SetLowBatteryVoltage1036
+	BREQ       L__SetLowBatteryVoltage1056
 	LDI        R16, 1
-L__SetLowBatteryVoltage1036:
+L__SetLowBatteryVoltage1056:
 	TST        R16
-	BRNE       L__SetLowBatteryVoltage1037
+	BRNE       L__SetLowBatteryVoltage1057
 	JMP        L_SetLowBatteryVoltage402
-L__SetLowBatteryVoltage1037:
+L__SetLowBatteryVoltage1057:
 	LDI        R27, 0
 	STS        _Mini_Battery_Voltage_T2+0, R27
 	STS        _Mini_Battery_Voltage_T2+1, R27
@@ -4465,13 +4477,13 @@ L_SetLowBatteryVoltage402:
 	CALL       _float_op_less+0
 	OR         R0, R0
 	LDI        R16, 0
-	BREQ       L__SetLowBatteryVoltage1038
+	BREQ       L__SetLowBatteryVoltage1058
 	LDI        R16, 1
-L__SetLowBatteryVoltage1038:
+L__SetLowBatteryVoltage1058:
 	TST        R16
-	BRNE       L__SetLowBatteryVoltage1039
+	BRNE       L__SetLowBatteryVoltage1059
 	JMP        L_SetLowBatteryVoltage403
-L__SetLowBatteryVoltage1039:
+L__SetLowBatteryVoltage1059:
 	LDI        R27, 0
 	STS        _Mini_Battery_Voltage_T2+0, R27
 	STS        _Mini_Battery_Voltage_T2+1, R27
@@ -4610,13 +4622,13 @@ L_SetStartUpLoadsVoltage408:
 L_SetStartUpLoadsVoltage409:
 	IN         R27, PIND+0
 	SBRC       R27, 0
-	JMP        L__SetStartUpLoadsVoltage788
+	JMP        L__SetStartUpLoadsVoltage796
 	IN         R27, PIND+0
 	SBRC       R27, 1
-	JMP        L__SetStartUpLoadsVoltage787
+	JMP        L__SetStartUpLoadsVoltage795
 	JMP        L_SetStartUpLoadsVoltage410
-L__SetStartUpLoadsVoltage788:
-L__SetStartUpLoadsVoltage787:
+L__SetStartUpLoadsVoltage796:
+L__SetStartUpLoadsVoltage795:
 ;Solar_Auto_Switcher.c,1270 :: 		if (Increment==1)
 	IN         R27, PIND+0
 	SBRS       R27, 0
@@ -4693,13 +4705,13 @@ L_SetStartUpLoadsVoltage416:
 	CALL       _float_op_big+0
 	OR         R0, R0
 	LDI        R16, 0
-	BREQ       L__SetStartUpLoadsVoltage1041
+	BREQ       L__SetStartUpLoadsVoltage1061
 	LDI        R16, 1
-L__SetStartUpLoadsVoltage1041:
+L__SetStartUpLoadsVoltage1061:
 	TST        R16
-	BRNE       L__SetStartUpLoadsVoltage1042
+	BRNE       L__SetStartUpLoadsVoltage1062
 	JMP        L_SetStartUpLoadsVoltage419
-L__SetStartUpLoadsVoltage1042:
+L__SetStartUpLoadsVoltage1062:
 	LDI        R27, 0
 	STS        _StartLoadsVoltage+0, R27
 	STS        _StartLoadsVoltage+1, R27
@@ -4718,13 +4730,13 @@ L_SetStartUpLoadsVoltage419:
 	CALL       _float_op_less+0
 	OR         R0, R0
 	LDI        R16, 0
-	BREQ       L__SetStartUpLoadsVoltage1043
+	BREQ       L__SetStartUpLoadsVoltage1063
 	LDI        R16, 1
-L__SetStartUpLoadsVoltage1043:
+L__SetStartUpLoadsVoltage1063:
 	TST        R16
-	BRNE       L__SetStartUpLoadsVoltage1044
+	BRNE       L__SetStartUpLoadsVoltage1064
 	JMP        L_SetStartUpLoadsVoltage420
-L__SetStartUpLoadsVoltage1044:
+L__SetStartUpLoadsVoltage1064:
 	LDI        R27, 0
 	STS        _StartLoadsVoltage+0, R27
 	STS        _StartLoadsVoltage+1, R27
@@ -4821,13 +4833,13 @@ L_SetStartUpLoadsVoltage425:
 L_SetStartUpLoadsVoltage426:
 	IN         R27, PIND+0
 	SBRC       R27, 0
-	JMP        L__SetStartUpLoadsVoltage790
+	JMP        L__SetStartUpLoadsVoltage798
 	IN         R27, PIND+0
 	SBRC       R27, 1
-	JMP        L__SetStartUpLoadsVoltage789
+	JMP        L__SetStartUpLoadsVoltage797
 	JMP        L_SetStartUpLoadsVoltage427
-L__SetStartUpLoadsVoltage790:
-L__SetStartUpLoadsVoltage789:
+L__SetStartUpLoadsVoltage798:
+L__SetStartUpLoadsVoltage797:
 ;Solar_Auto_Switcher.c,1301 :: 		if (Increment==1)
 	IN         R27, PIND+0
 	SBRS       R27, 0
@@ -4904,13 +4916,13 @@ L_SetStartUpLoadsVoltage433:
 	CALL       _float_op_big+0
 	OR         R0, R0
 	LDI        R16, 0
-	BREQ       L__SetStartUpLoadsVoltage1045
+	BREQ       L__SetStartUpLoadsVoltage1065
 	LDI        R16, 1
-L__SetStartUpLoadsVoltage1045:
+L__SetStartUpLoadsVoltage1065:
 	TST        R16
-	BRNE       L__SetStartUpLoadsVoltage1046
+	BRNE       L__SetStartUpLoadsVoltage1066
 	JMP        L_SetStartUpLoadsVoltage436
-L__SetStartUpLoadsVoltage1046:
+L__SetStartUpLoadsVoltage1066:
 	LDI        R27, 0
 	STS        _StartLoadsVoltage_T2+0, R27
 	STS        _StartLoadsVoltage_T2+1, R27
@@ -4929,13 +4941,13 @@ L_SetStartUpLoadsVoltage436:
 	CALL       _float_op_less+0
 	OR         R0, R0
 	LDI        R16, 0
-	BREQ       L__SetStartUpLoadsVoltage1047
+	BREQ       L__SetStartUpLoadsVoltage1067
 	LDI        R16, 1
-L__SetStartUpLoadsVoltage1047:
+L__SetStartUpLoadsVoltage1067:
 	TST        R16
-	BRNE       L__SetStartUpLoadsVoltage1048
+	BRNE       L__SetStartUpLoadsVoltage1068
 	JMP        L_SetStartUpLoadsVoltage437
-L__SetStartUpLoadsVoltage1048:
+L__SetStartUpLoadsVoltage1068:
 	LDI        R27, 0
 	STS        _StartLoadsVoltage_T2+0, R27
 	STS        _StartLoadsVoltage_T2+1, R27
@@ -4980,21 +4992,11 @@ L_end_SetStartUpLoadsVoltage:
 _SetHighVoltage:
 
 ;Solar_Auto_Switcher.c,1322 :: 		void SetHighVoltage()
-;Solar_Auto_Switcher.c,1324 :: 		LCD_OUT(1,1,"High AC Volt [7]");
+;Solar_Auto_Switcher.c,1325 :: 		Delay_ms(500);
 	PUSH       R2
 	PUSH       R3
 	PUSH       R4
 	PUSH       R5
-	LDI        R27, #lo_addr(?lstr31_Solar_Auto_Switcher+0)
-	MOV        R4, R27
-	LDI        R27, hi_addr(?lstr31_Solar_Auto_Switcher+0)
-	MOV        R5, R27
-	LDI        R27, 1
-	MOV        R3, R27
-	LDI        R27, 1
-	MOV        R2, R27
-	CALL       _Lcd_Out+0
-;Solar_Auto_Switcher.c,1325 :: 		Delay_ms(500);
 	LDI        R18, 21
 	LDI        R17, 75
 	LDI        R16, 191
@@ -5047,13 +5049,13 @@ L_SetHighVoltage442:
 L_SetHighVoltage443:
 	IN         R27, PIND+0
 	SBRC       R27, 0
-	JMP        L__SetHighVoltage817
+	JMP        L__SetHighVoltage825
 	IN         R27, PIND+0
 	SBRC       R27, 1
-	JMP        L__SetHighVoltage816
+	JMP        L__SetHighVoltage824
 	JMP        L_SetHighVoltage444
-L__SetHighVoltage817:
-L__SetHighVoltage816:
+L__SetHighVoltage825:
+L__SetHighVoltage824:
 ;Solar_Auto_Switcher.c,1334 :: 		IntToStr(High_Voltage,txt);
 	LDI        R27, #lo_addr(_txt+0)
 	MOV        R4, R27
@@ -5129,9 +5131,9 @@ L_SetHighVoltage450:
 	LDI        R17, 0
 	CP         R16, R18
 	CPC        R17, R19
-	BRLO       L__SetHighVoltage1050
+	BRLO       L__SetHighVoltage1070
 	JMP        L_SetHighVoltage453
-L__SetHighVoltage1050:
+L__SetHighVoltage1070:
 	LDI        R27, 0
 	STS        _High_Voltage+0, R27
 	STS        _High_Voltage+1, R27
@@ -5140,12 +5142,12 @@ L_SetHighVoltage453:
 	LDS        R16, _High_Voltage+0
 	LDS        R17, _High_Voltage+1
 	CPI        R17, 0
-	BRNE       L__SetHighVoltage1051
+	BRNE       L__SetHighVoltage1071
 	CPI        R16, 0
-L__SetHighVoltage1051:
-	BRLO       L__SetHighVoltage1052
+L__SetHighVoltage1071:
+	BRLO       L__SetHighVoltage1072
 	JMP        L_SetHighVoltage454
-L__SetHighVoltage1052:
+L__SetHighVoltage1072:
 	LDI        R27, 0
 	STS        _High_Voltage+0, R27
 	STS        _High_Voltage+1, R27
@@ -5179,21 +5181,11 @@ L_end_SetHighVoltage:
 _SetLowVoltage:
 
 ;Solar_Auto_Switcher.c,1354 :: 		void SetLowVoltage()
-;Solar_Auto_Switcher.c,1356 :: 		LCD_OUT(1,1,"Low AC Volt [8]");
+;Solar_Auto_Switcher.c,1357 :: 		Delay_ms(500);
 	PUSH       R2
 	PUSH       R3
 	PUSH       R4
 	PUSH       R5
-	LDI        R27, #lo_addr(?lstr32_Solar_Auto_Switcher+0)
-	MOV        R4, R27
-	LDI        R27, hi_addr(?lstr32_Solar_Auto_Switcher+0)
-	MOV        R5, R27
-	LDI        R27, 1
-	MOV        R3, R27
-	LDI        R27, 1
-	MOV        R2, R27
-	CALL       _Lcd_Out+0
-;Solar_Auto_Switcher.c,1357 :: 		Delay_ms(500);
 	LDI        R18, 21
 	LDI        R17, 75
 	LDI        R16, 191
@@ -5246,13 +5238,13 @@ L_SetLowVoltage459:
 L_SetLowVoltage460:
 	IN         R27, PIND+0
 	SBRC       R27, 0
-	JMP        L__SetLowVoltage820
+	JMP        L__SetLowVoltage828
 	IN         R27, PIND+0
 	SBRC       R27, 1
-	JMP        L__SetLowVoltage819
+	JMP        L__SetLowVoltage827
 	JMP        L_SetLowVoltage461
-L__SetLowVoltage820:
-L__SetLowVoltage819:
+L__SetLowVoltage828:
+L__SetLowVoltage827:
 ;Solar_Auto_Switcher.c,1366 :: 		IntToStr(Low_Voltage,txt);
 	LDI        R27, #lo_addr(_txt+0)
 	MOV        R4, R27
@@ -5328,9 +5320,9 @@ L_SetLowVoltage467:
 	LDI        R17, 0
 	CP         R16, R18
 	CPC        R17, R19
-	BRLO       L__SetLowVoltage1054
+	BRLO       L__SetLowVoltage1074
 	JMP        L_SetLowVoltage470
-L__SetLowVoltage1054:
+L__SetLowVoltage1074:
 	LDI        R27, 0
 	STS        _Low_Voltage+0, R27
 	STS        _Low_Voltage+1, R27
@@ -5339,12 +5331,12 @@ L_SetLowVoltage470:
 	LDS        R16, _Low_Voltage+0
 	LDS        R17, _Low_Voltage+1
 	CPI        R17, 0
-	BRNE       L__SetLowVoltage1055
+	BRNE       L__SetLowVoltage1075
 	CPI        R16, 0
-L__SetLowVoltage1055:
-	BRLO       L__SetLowVoltage1056
+L__SetLowVoltage1075:
+	BRLO       L__SetLowVoltage1076
 	JMP        L_SetLowVoltage471
-L__SetLowVoltage1056:
+L__SetLowVoltage1076:
 	LDI        R27, 0
 	STS        _Low_Voltage+0, R27
 	STS        _Low_Voltage+1, R27
@@ -5393,9 +5385,9 @@ _Startup_Timers:
 	PUSH       R5
 	PUSH       R6
 	PUSH       R7
-	LDI        R27, #lo_addr(?lstr33_Solar_Auto_Switcher+0)
+	LDI        R27, #lo_addr(?lstr31_Solar_Auto_Switcher+0)
 	MOV        R4, R27
-	LDI        R27, hi_addr(?lstr33_Solar_Auto_Switcher+0)
+	LDI        R27, hi_addr(?lstr31_Solar_Auto_Switcher+0)
 	MOV        R5, R27
 	LDI        R27, 1
 	MOV        R3, R27
@@ -5436,9 +5428,9 @@ L_Startup_Timers474:
 	LDS        R3, _startupTIme_1+1
 	CALL       _IntToStr+0
 ;Solar_Auto_Switcher.c,1397 :: 		LCD_OUT(2,1,"T1");
-	LDI        R27, #lo_addr(?lstr34_Solar_Auto_Switcher+0)
+	LDI        R27, #lo_addr(?lstr32_Solar_Auto_Switcher+0)
 	MOV        R4, R27
-	LDI        R27, hi_addr(?lstr34_Solar_Auto_Switcher+0)
+	LDI        R27, hi_addr(?lstr32_Solar_Auto_Switcher+0)
 	MOV        R5, R27
 	LDI        R27, 1
 	MOV        R3, R27
@@ -5465,13 +5457,13 @@ L_Startup_Timers476:
 L_Startup_Timers477:
 	IN         R27, PIND+0
 	SBRC       R27, 0
-	JMP        L__Startup_Timers812
+	JMP        L__Startup_Timers820
 	IN         R27, PIND+0
 	SBRC       R27, 1
-	JMP        L__Startup_Timers811
+	JMP        L__Startup_Timers819
 	JMP        L_Startup_Timers478
-L__Startup_Timers812:
-L__Startup_Timers811:
+L__Startup_Timers820:
+L__Startup_Timers819:
 ;Solar_Auto_Switcher.c,1403 :: 		if(Increment==1)
 	IN         R27, PIND+0
 	SBRS       R27, 0
@@ -5527,9 +5519,9 @@ L_Startup_Timers484:
 	LDI        R17, 2
 	CP         R16, R18
 	CPC        R17, R19
-	BRLO       L__Startup_Timers1058
+	BRLO       L__Startup_Timers1078
 	JMP        L_Startup_Timers487
-L__Startup_Timers1058:
+L__Startup_Timers1078:
 	LDI        R27, 0
 	STS        _startupTIme_1+0, R27
 	STS        _startupTIme_1+1, R27
@@ -5538,12 +5530,12 @@ L_Startup_Timers487:
 	LDS        R16, _startupTIme_1+0
 	LDS        R17, _startupTIme_1+1
 	CPI        R17, 0
-	BRNE       L__Startup_Timers1059
+	BRNE       L__Startup_Timers1079
 	CPI        R16, 0
-L__Startup_Timers1059:
-	BRLO       L__Startup_Timers1060
+L__Startup_Timers1079:
+	BRLO       L__Startup_Timers1080
 	JMP        L_Startup_Timers488
-L__Startup_Timers1060:
+L__Startup_Timers1080:
 	LDI        R27, 0
 	STS        _startupTIme_1+0, R27
 	STS        _startupTIme_1+1, R27
@@ -5594,9 +5586,9 @@ L_Startup_Timers491:
 	LDS        R3, _startupTIme_2+1
 	CALL       _IntToStr+0
 ;Solar_Auto_Switcher.c,1425 :: 		LCD_OUT(2,1,"T2");
-	LDI        R27, #lo_addr(?lstr35_Solar_Auto_Switcher+0)
+	LDI        R27, #lo_addr(?lstr33_Solar_Auto_Switcher+0)
 	MOV        R4, R27
-	LDI        R27, hi_addr(?lstr35_Solar_Auto_Switcher+0)
+	LDI        R27, hi_addr(?lstr33_Solar_Auto_Switcher+0)
 	MOV        R5, R27
 	LDI        R27, 1
 	MOV        R3, R27
@@ -5623,13 +5615,13 @@ L_Startup_Timers493:
 L_Startup_Timers494:
 	IN         R27, PIND+0
 	SBRC       R27, 0
-	JMP        L__Startup_Timers814
+	JMP        L__Startup_Timers822
 	IN         R27, PIND+0
 	SBRC       R27, 1
-	JMP        L__Startup_Timers813
+	JMP        L__Startup_Timers821
 	JMP        L_Startup_Timers495
-L__Startup_Timers814:
-L__Startup_Timers813:
+L__Startup_Timers822:
+L__Startup_Timers821:
 ;Solar_Auto_Switcher.c,1431 :: 		if(Increment==1)
 	IN         R27, PIND+0
 	SBRS       R27, 0
@@ -5685,9 +5677,9 @@ L_Startup_Timers501:
 	LDI        R17, 2
 	CP         R16, R18
 	CPC        R17, R19
-	BRLO       L__Startup_Timers1061
+	BRLO       L__Startup_Timers1081
 	JMP        L_Startup_Timers504
-L__Startup_Timers1061:
+L__Startup_Timers1081:
 	LDI        R27, 0
 	STS        _startupTIme_2+0, R27
 	STS        _startupTIme_2+1, R27
@@ -5696,12 +5688,12 @@ L_Startup_Timers504:
 	LDS        R16, _startupTIme_2+0
 	LDS        R17, _startupTIme_2+1
 	CPI        R17, 0
-	BRNE       L__Startup_Timers1062
+	BRNE       L__Startup_Timers1082
 	CPI        R16, 0
-L__Startup_Timers1062:
-	BRLO       L__Startup_Timers1063
+L__Startup_Timers1082:
+	BRLO       L__Startup_Timers1083
 	JMP        L_Startup_Timers505
-L__Startup_Timers1063:
+L__Startup_Timers1083:
 	LDI        R27, 0
 	STS        _startupTIme_2+0, R27
 	STS        _startupTIme_2+1, R27
@@ -5834,9 +5826,9 @@ _Read_Battery:
 L_Read_Battery506:
 	LDD        R16, Y+44
 	CPI        R16, 10
-	BRLO       L__Read_Battery1067
+	BRLO       L__Read_Battery1087
 	JMP        L_Read_Battery507
-L__Read_Battery1067:
+L__Read_Battery1087:
 ;Solar_Auto_Switcher.c,1510 :: 		Battery[i]=((10.5/0.5)*Battery_Voltage);
 	MOVW       R18, R28
 	LDD        R16, Y+44
@@ -5922,9 +5914,9 @@ L_Read_Battery507:
 	STS        _Vin_Battery+2, R18
 	STS        _Vin_Battery+3, R19
 ;Solar_Auto_Switcher.c,1515 :: 		LCD_OUT(2,1,"V=");
-	LDI        R27, #lo_addr(?lstr36_Solar_Auto_Switcher+0)
+	LDI        R27, #lo_addr(?lstr34_Solar_Auto_Switcher+0)
 	MOV        R4, R27
-	LDI        R27, hi_addr(?lstr36_Solar_Auto_Switcher+0)
+	LDI        R27, hi_addr(?lstr34_Solar_Auto_Switcher+0)
 	MOV        R5, R27
 	LDI        R27, 1
 	MOV        R3, R27
@@ -5940,9 +5932,9 @@ L_Read_Battery507:
 	PUSH       R18
 	PUSH       R17
 	PUSH       R16
-	LDI        R27, hi_addr(?lstr_37_Solar_Auto_Switcher+0)
+	LDI        R27, hi_addr(?lstr_35_Solar_Auto_Switcher+0)
 	PUSH       R27
-	LDI        R27, #lo_addr(?lstr_37_Solar_Auto_Switcher+0)
+	LDI        R27, #lo_addr(?lstr_35_Solar_Auto_Switcher+0)
 	PUSH       R27
 	LDI        R27, hi_addr(_txt+0)
 	PUSH       R27
@@ -5993,32 +5985,32 @@ _LowBatteryVoltageAlarm:
 	CALL       _float_op_less+0
 	OR         R0, R0
 	LDI        R16, 0
-	BREQ       L__LowBatteryVoltageAlarm1069
+	BREQ       L__LowBatteryVoltageAlarm1089
 	LDI        R16, 1
-L__LowBatteryVoltageAlarm1069:
+L__LowBatteryVoltageAlarm1089:
 	TST        R16
-	BRNE       L__LowBatteryVoltageAlarm1070
-	JMP        L__LowBatteryVoltageAlarm842
-L__LowBatteryVoltageAlarm1070:
+	BRNE       L__LowBatteryVoltageAlarm1090
+	JMP        L__LowBatteryVoltageAlarm850
+L__LowBatteryVoltageAlarm1090:
 	LDS        R16, _RunWithOutBattery+0
 	CPI        R16, 0
-	BREQ       L__LowBatteryVoltageAlarm1071
-	JMP        L__LowBatteryVoltageAlarm841
-L__LowBatteryVoltageAlarm1071:
+	BREQ       L__LowBatteryVoltageAlarm1091
+	JMP        L__LowBatteryVoltageAlarm849
+L__LowBatteryVoltageAlarm1091:
 	LDS        R16, _Timer_isOn+0
 	CPI        R16, 1
-	BRNE       L__LowBatteryVoltageAlarm1072
-	JMP        L__LowBatteryVoltageAlarm840
-L__LowBatteryVoltageAlarm1072:
+	BRNE       L__LowBatteryVoltageAlarm1092
+	JMP        L__LowBatteryVoltageAlarm848
+L__LowBatteryVoltageAlarm1092:
 	LDS        R16, _Timer_2_isOn+0
 	CPI        R16, 1
-	BRNE       L__LowBatteryVoltageAlarm1073
-	JMP        L__LowBatteryVoltageAlarm839
-L__LowBatteryVoltageAlarm1073:
+	BRNE       L__LowBatteryVoltageAlarm1093
+	JMP        L__LowBatteryVoltageAlarm847
+L__LowBatteryVoltageAlarm1093:
 	JMP        L_LowBatteryVoltageAlarm515
-L__LowBatteryVoltageAlarm840:
-L__LowBatteryVoltageAlarm839:
-L__LowBatteryVoltageAlarm837:
+L__LowBatteryVoltageAlarm848:
+L__LowBatteryVoltageAlarm847:
+L__LowBatteryVoltageAlarm845:
 ;Solar_Auto_Switcher.c,1526 :: 		Buzzer=1;
 	IN         R27, PORTC+0
 	SBR        R27, 4
@@ -6054,8 +6046,8 @@ L_LowBatteryVoltageAlarm518:
 ;Solar_Auto_Switcher.c,1530 :: 		}
 L_LowBatteryVoltageAlarm515:
 ;Solar_Auto_Switcher.c,1524 :: 		if (Vin_Battery<Mini_Battery_Voltage && RunWithOutBattery==false && (Timer_isOn==1 || Timer_2_isOn==1)  ) // to give some time to the handle the situation
-L__LowBatteryVoltageAlarm842:
-L__LowBatteryVoltageAlarm841:
+L__LowBatteryVoltageAlarm850:
+L__LowBatteryVoltageAlarm849:
 ;Solar_Auto_Switcher.c,1531 :: 		}
 L_end_LowBatteryVoltageAlarm:
 	RET
@@ -6087,9 +6079,9 @@ L_ReadAC520:
 ; i start address is: 18 (R18)
 ; max_v start address is: 19 (R19)
 	CPI        R18, 100
-	BRLO       L__ReadAC1075
+	BRLO       L__ReadAC1095
 	JMP        L_ReadAC521
-L__ReadAC1075:
+L__ReadAC1095:
 ;Solar_Auto_Switcher.c,1546 :: 		r=ADC_Read(3);
 	PUSH       R22
 	PUSH       R21
@@ -6114,9 +6106,9 @@ L__ReadAC1075:
 	CPC        R20, R24
 	CPC        R21, R25
 	CPC        R22, R26
-	BRLO       L__ReadAC1076
-	JMP        L__ReadAC754
-L__ReadAC1076:
+	BRLO       L__ReadAC1096
+	JMP        L__ReadAC762
+L__ReadAC1096:
 	MOV        R19, R23
 	MOV        R20, R24
 	MOV        R21, R25
@@ -6124,7 +6116,7 @@ L__ReadAC1076:
 ; r end address is: 23 (R23)
 ; max_v end address is: 19 (R19)
 	JMP        L_ReadAC523
-L__ReadAC754:
+L__ReadAC762:
 L_ReadAC523:
 ;Solar_Auto_Switcher.c,1548 :: 		delay_us(200);
 ; max_v start address is: 19 (R19)
@@ -6241,13 +6233,13 @@ _CalculateAC:
 ;Solar_Auto_Switcher.c,1575 :: 		if (AC_Available==0 && VoltageProtectionEnable==1)   // disable the ac voltage if voltage protector is enabeled
 	IN         R27, PIND+0
 	SBRC       R27, 3
-	JMP        L__CalculateAC834
+	JMP        L__CalculateAC842
 	LDS        R16, _VoltageProtectionEnable+0
 	CPI        R16, 1
-	BREQ       L__CalculateAC1078
-	JMP        L__CalculateAC833
-L__CalculateAC1078:
-L__CalculateAC832:
+	BREQ       L__CalculateAC1098
+	JMP        L__CalculateAC841
+L__CalculateAC1098:
+L__CalculateAC840:
 ;Solar_Auto_Switcher.c,1577 :: 		sprintf(buf,"%4.0fV",v);
 	MOVW       R20, R28
 	LDS        R16, _v+0
@@ -6258,9 +6250,9 @@ L__CalculateAC832:
 	PUSH       R18
 	PUSH       R17
 	PUSH       R16
-	LDI        R27, hi_addr(?lstr_38_Solar_Auto_Switcher+0)
+	LDI        R27, hi_addr(?lstr_36_Solar_Auto_Switcher+0)
 	PUSH       R27
-	LDI        R27, #lo_addr(?lstr_38_Solar_Auto_Switcher+0)
+	LDI        R27, #lo_addr(?lstr_36_Solar_Auto_Switcher+0)
 	PUSH       R27
 	PUSH       R21
 	PUSH       R20
@@ -6271,9 +6263,9 @@ L__CalculateAC832:
 	OUT        SPL+0, R26
 	OUT        SPL+1, R27
 ;Solar_Auto_Switcher.c,1578 :: 		LCD_OUT(2,8,"-");
-	LDI        R27, #lo_addr(?lstr39_Solar_Auto_Switcher+0)
+	LDI        R27, #lo_addr(?lstr37_Solar_Auto_Switcher+0)
 	MOV        R4, R27
-	LDI        R27, hi_addr(?lstr39_Solar_Auto_Switcher+0)
+	LDI        R27, hi_addr(?lstr37_Solar_Auto_Switcher+0)
 	MOV        R5, R27
 	LDI        R27, 8
 	MOV        R3, R27
@@ -6291,22 +6283,22 @@ L__CalculateAC832:
 ;Solar_Auto_Switcher.c,1580 :: 		}
 	JMP        L_CalculateAC529
 ;Solar_Auto_Switcher.c,1575 :: 		if (AC_Available==0 && VoltageProtectionEnable==1)   // disable the ac voltage if voltage protector is enabeled
-L__CalculateAC834:
-L__CalculateAC833:
+L__CalculateAC842:
+L__CalculateAC841:
 ;Solar_Auto_Switcher.c,1581 :: 		else if (AC_Available== 0 && VoltageProtectionEnable==0) // in this if voltage protector is turned of no need for voltage read
 	IN         R27, PIND+0
 	SBRC       R27, 3
-	JMP        L__CalculateAC836
+	JMP        L__CalculateAC844
 	LDS        R16, _VoltageProtectionEnable+0
 	CPI        R16, 0
-	BREQ       L__CalculateAC1079
-	JMP        L__CalculateAC835
-L__CalculateAC1079:
-L__CalculateAC831:
+	BREQ       L__CalculateAC1099
+	JMP        L__CalculateAC843
+L__CalculateAC1099:
+L__CalculateAC839:
 ;Solar_Auto_Switcher.c,1583 :: 		LCD_out(2,8,"- Grid");
-	LDI        R27, #lo_addr(?lstr40_Solar_Auto_Switcher+0)
+	LDI        R27, #lo_addr(?lstr38_Solar_Auto_Switcher+0)
 	MOV        R4, R27
-	LDI        R27, hi_addr(?lstr40_Solar_Auto_Switcher+0)
+	LDI        R27, hi_addr(?lstr38_Solar_Auto_Switcher+0)
 	MOV        R5, R27
 	LDI        R27, 8
 	MOV        R3, R27
@@ -6314,8 +6306,8 @@ L__CalculateAC831:
 	MOV        R2, R27
 	CALL       _Lcd_Out+0
 ;Solar_Auto_Switcher.c,1581 :: 		else if (AC_Available== 0 && VoltageProtectionEnable==0) // in this if voltage protector is turned of no need for voltage read
-L__CalculateAC836:
-L__CalculateAC835:
+L__CalculateAC844:
+L__CalculateAC843:
 ;Solar_Auto_Switcher.c,1584 :: 		}
 L_CalculateAC529:
 ;Solar_Auto_Switcher.c,1585 :: 		VoltageProtector(v);
@@ -6352,9 +6344,9 @@ _VoltageProtector:
 	LDI        R27, 0
 	CPC        R4, R27
 	CPC        R5, R27
-	BRSH       L__VoltageProtector1081
-	JMP        L__VoltageProtector826
-L__VoltageProtector1081:
+	BRSH       L__VoltageProtector1101
+	JMP        L__VoltageProtector834
+L__VoltageProtector1101:
 	LDS        R16, _High_Voltage+0
 	LDS        R17, _High_Voltage+1
 	LDI        R18, 0
@@ -6363,23 +6355,23 @@ L__VoltageProtector1081:
 	CPC        R17, R3
 	CPC        R18, R4
 	CPC        R19, R5
-	BRSH       L__VoltageProtector1082
-	JMP        L__VoltageProtector825
-L__VoltageProtector1082:
+	BRSH       L__VoltageProtector1102
+	JMP        L__VoltageProtector833
+L__VoltageProtector1102:
 	JMP        L_VoltageProtector537
-L__VoltageProtector826:
-L__VoltageProtector825:
+L__VoltageProtector834:
+L__VoltageProtector833:
 	IN         R27, PIND+0
 	SBRC       R27, 3
-	JMP        L__VoltageProtector827
-L__VoltageProtector823:
+	JMP        L__VoltageProtector835
+L__VoltageProtector831:
 ;Solar_Auto_Switcher.c,1595 :: 		VoltageProtectorGood=0;
 	LDI        R27, 0
 	STS        _VoltageProtectorGood+0, R27
 ;Solar_Auto_Switcher.c,1596 :: 		}
 L_VoltageProtector537:
 ;Solar_Auto_Switcher.c,1593 :: 		if ((voltage < Low_Voltage || voltage> High_Voltage )&& AC_Available==0 ) // ac available
-L__VoltageProtector827:
+L__VoltageProtector835:
 ;Solar_Auto_Switcher.c,1598 :: 		if ((voltage>Low_Voltage && voltage < High_Voltage) && AC_Available==0)
 	LDS        R16, _Low_Voltage+0
 	LDS        R17, _Low_Voltage+1
@@ -6389,9 +6381,9 @@ L__VoltageProtector827:
 	CPC        R17, R3
 	CPC        R18, R4
 	CPC        R19, R5
-	BRLO       L__VoltageProtector1083
-	JMP        L__VoltageProtector830
-L__VoltageProtector1083:
+	BRLO       L__VoltageProtector1103
+	JMP        L__VoltageProtector838
+L__VoltageProtector1103:
 	LDS        R16, _High_Voltage+0
 	LDS        R17, _High_Voltage+1
 	CP         R2, R16
@@ -6399,21 +6391,21 @@ L__VoltageProtector1083:
 	LDI        R27, 0
 	CPC        R4, R27
 	CPC        R5, R27
-	BRLO       L__VoltageProtector1084
-	JMP        L__VoltageProtector829
-L__VoltageProtector1084:
-L__VoltageProtector822:
+	BRLO       L__VoltageProtector1104
+	JMP        L__VoltageProtector837
+L__VoltageProtector1104:
+L__VoltageProtector830:
 	IN         R27, PIND+0
 	SBRC       R27, 3
-	JMP        L__VoltageProtector828
-L__VoltageProtector821:
+	JMP        L__VoltageProtector836
+L__VoltageProtector829:
 ;Solar_Auto_Switcher.c,1600 :: 		VoltageProtectorGood=1;
 	LDI        R27, 1
 	STS        _VoltageProtectorGood+0, R27
 ;Solar_Auto_Switcher.c,1598 :: 		if ((voltage>Low_Voltage && voltage < High_Voltage) && AC_Available==0)
-L__VoltageProtector830:
-L__VoltageProtector829:
-L__VoltageProtector828:
+L__VoltageProtector838:
+L__VoltageProtector837:
+L__VoltageProtector836:
 ;Solar_Auto_Switcher.c,1602 :: 		}
 L_end_VoltageProtector:
 	RET
@@ -6505,12 +6497,12 @@ _Interupt_Timer_0_A_OFFTime:
 	STS        _Timer_Counter_For_Grid_Turn_Off+1, R17
 ;Solar_Auto_Switcher.c,1640 :: 		if (Timer_Counter_3==500)              // more than 10 seconds
 	CPI        R19, 1
-	BRNE       L__Interupt_Timer_0_A_OFFTime1088
+	BRNE       L__Interupt_Timer_0_A_OFFTime1108
 	CPI        R18, 244
-L__Interupt_Timer_0_A_OFFTime1088:
-	BREQ       L__Interupt_Timer_0_A_OFFTime1089
+L__Interupt_Timer_0_A_OFFTime1108:
+	BREQ       L__Interupt_Timer_0_A_OFFTime1109
 	JMP        L_Interupt_Timer_0_A_OFFTime543
-L__Interupt_Timer_0_A_OFFTime1089:
+L__Interupt_Timer_0_A_OFFTime1109:
 ;Solar_Auto_Switcher.c,1643 :: 		if(Vin_Battery<Mini_Battery_Voltage && AC_Available==1)
 	LDS        R20, _Mini_Battery_Voltage+0
 	LDS        R21, _Mini_Battery_Voltage+1
@@ -6523,17 +6515,17 @@ L__Interupt_Timer_0_A_OFFTime1089:
 	CALL       _float_op_less+0
 	OR         R0, R0
 	LDI        R16, 0
-	BREQ       L__Interupt_Timer_0_A_OFFTime1090
+	BREQ       L__Interupt_Timer_0_A_OFFTime1110
 	LDI        R16, 1
-L__Interupt_Timer_0_A_OFFTime1090:
+L__Interupt_Timer_0_A_OFFTime1110:
 	TST        R16
-	BRNE       L__Interupt_Timer_0_A_OFFTime1091
-	JMP        L__Interupt_Timer_0_A_OFFTime847
-L__Interupt_Timer_0_A_OFFTime1091:
+	BRNE       L__Interupt_Timer_0_A_OFFTime1111
+	JMP        L__Interupt_Timer_0_A_OFFTime855
+L__Interupt_Timer_0_A_OFFTime1111:
 	IN         R27, PIND+0
 	SBRS       R27, 3
-	JMP        L__Interupt_Timer_0_A_OFFTime846
-L__Interupt_Timer_0_A_OFFTime845:
+	JMP        L__Interupt_Timer_0_A_OFFTime854
+L__Interupt_Timer_0_A_OFFTime853:
 ;Solar_Auto_Switcher.c,1645 :: 		SecondsRealTime=0;
 	LDI        R27, 0
 	STS        _SecondsRealTime+0, R27
@@ -6563,8 +6555,8 @@ L_Interupt_Timer_0_A_OFFTime547:
 	MOV        R2, R27
 	CALL       _LCD_Clear+0
 ;Solar_Auto_Switcher.c,1643 :: 		if(Vin_Battery<Mini_Battery_Voltage && AC_Available==1)
-L__Interupt_Timer_0_A_OFFTime847:
-L__Interupt_Timer_0_A_OFFTime846:
+L__Interupt_Timer_0_A_OFFTime855:
+L__Interupt_Timer_0_A_OFFTime854:
 ;Solar_Auto_Switcher.c,1650 :: 		Timer_Counter_3=0;
 	LDI        R27, 0
 	STS        _Timer_Counter_3+0, R27
@@ -6577,12 +6569,12 @@ L_Interupt_Timer_0_A_OFFTime543:
 	LDS        R16, _Timer_Counter_4+0
 	LDS        R17, _Timer_Counter_4+1
 	CPI        R17, 1
-	BRNE       L__Interupt_Timer_0_A_OFFTime1092
+	BRNE       L__Interupt_Timer_0_A_OFFTime1112
 	CPI        R16, 244
-L__Interupt_Timer_0_A_OFFTime1092:
-	BREQ       L__Interupt_Timer_0_A_OFFTime1093
+L__Interupt_Timer_0_A_OFFTime1112:
+	BREQ       L__Interupt_Timer_0_A_OFFTime1113
 	JMP        L_Interupt_Timer_0_A_OFFTime549
-L__Interupt_Timer_0_A_OFFTime1093:
+L__Interupt_Timer_0_A_OFFTime1113:
 ;Solar_Auto_Switcher.c,1658 :: 		if(Vin_Battery<Mini_Battery_Voltage_T2 && AC_Available==1)
 	LDS        R20, _Mini_Battery_Voltage_T2+0
 	LDS        R21, _Mini_Battery_Voltage_T2+1
@@ -6595,17 +6587,17 @@ L__Interupt_Timer_0_A_OFFTime1093:
 	CALL       _float_op_less+0
 	OR         R0, R0
 	LDI        R16, 0
-	BREQ       L__Interupt_Timer_0_A_OFFTime1094
+	BREQ       L__Interupt_Timer_0_A_OFFTime1114
 	LDI        R16, 1
-L__Interupt_Timer_0_A_OFFTime1094:
+L__Interupt_Timer_0_A_OFFTime1114:
 	TST        R16
-	BRNE       L__Interupt_Timer_0_A_OFFTime1095
-	JMP        L__Interupt_Timer_0_A_OFFTime849
-L__Interupt_Timer_0_A_OFFTime1095:
+	BRNE       L__Interupt_Timer_0_A_OFFTime1115
+	JMP        L__Interupt_Timer_0_A_OFFTime857
+L__Interupt_Timer_0_A_OFFTime1115:
 	IN         R27, PIND+0
 	SBRS       R27, 3
-	JMP        L__Interupt_Timer_0_A_OFFTime848
-L__Interupt_Timer_0_A_OFFTime844:
+	JMP        L__Interupt_Timer_0_A_OFFTime856
+L__Interupt_Timer_0_A_OFFTime852:
 ;Solar_Auto_Switcher.c,1660 :: 		SecondsRealTime=0;
 	LDI        R27, 0
 	STS        _SecondsRealTime+0, R27
@@ -6635,8 +6627,8 @@ L_Interupt_Timer_0_A_OFFTime553:
 	MOV        R2, R27
 	CALL       _LCD_Clear+0
 ;Solar_Auto_Switcher.c,1658 :: 		if(Vin_Battery<Mini_Battery_Voltage_T2 && AC_Available==1)
-L__Interupt_Timer_0_A_OFFTime849:
-L__Interupt_Timer_0_A_OFFTime848:
+L__Interupt_Timer_0_A_OFFTime857:
+L__Interupt_Timer_0_A_OFFTime856:
 ;Solar_Auto_Switcher.c,1665 :: 		Timer_Counter_4=0;
 	LDI        R27, 0
 	STS        _Timer_Counter_4+0, R27
@@ -6649,22 +6641,22 @@ L_Interupt_Timer_0_A_OFFTime549:
 	LDS        R16, _Timer_Counter_For_Grid_Turn_Off+0
 	LDS        R17, _Timer_Counter_For_Grid_Turn_Off+1
 	CPI        R17, 3
-	BRNE       L__Interupt_Timer_0_A_OFFTime1096
+	BRNE       L__Interupt_Timer_0_A_OFFTime1116
 	CPI        R16, 232
-L__Interupt_Timer_0_A_OFFTime1096:
-	BREQ       L__Interupt_Timer_0_A_OFFTime1097
+L__Interupt_Timer_0_A_OFFTime1116:
+	BREQ       L__Interupt_Timer_0_A_OFFTime1117
 	JMP        L_Interupt_Timer_0_A_OFFTime555
-L__Interupt_Timer_0_A_OFFTime1097:
+L__Interupt_Timer_0_A_OFFTime1117:
 ;Solar_Auto_Switcher.c,1673 :: 		if(VoltageProtectorGood==0 && AC_Available==0)
 	LDS        R16, _VoltageProtectorGood+0
 	CPI        R16, 0
-	BREQ       L__Interupt_Timer_0_A_OFFTime1098
-	JMP        L__Interupt_Timer_0_A_OFFTime851
-L__Interupt_Timer_0_A_OFFTime1098:
+	BREQ       L__Interupt_Timer_0_A_OFFTime1118
+	JMP        L__Interupt_Timer_0_A_OFFTime859
+L__Interupt_Timer_0_A_OFFTime1118:
 	IN         R27, PIND+0
 	SBRC       R27, 3
-	JMP        L__Interupt_Timer_0_A_OFFTime850
-L__Interupt_Timer_0_A_OFFTime843:
+	JMP        L__Interupt_Timer_0_A_OFFTime858
+L__Interupt_Timer_0_A_OFFTime851:
 ;Solar_Auto_Switcher.c,1675 :: 		SecondsRealTime=0;
 	LDI        R27, 0
 	STS        _SecondsRealTime+0, R27
@@ -6686,8 +6678,8 @@ L__Interupt_Timer_0_A_OFFTime843:
 	MOV        R2, R27
 	CALL       _LCD_Clear+0
 ;Solar_Auto_Switcher.c,1673 :: 		if(VoltageProtectorGood==0 && AC_Available==0)
-L__Interupt_Timer_0_A_OFFTime851:
-L__Interupt_Timer_0_A_OFFTime850:
+L__Interupt_Timer_0_A_OFFTime859:
+L__Interupt_Timer_0_A_OFFTime858:
 ;Solar_Auto_Switcher.c,1680 :: 		Timer_Counter_For_Grid_Turn_Off=0;
 	LDI        R27, 0
 	STS        _Timer_Counter_For_Grid_Turn_Off+0, R27
@@ -6749,9 +6741,9 @@ _EEPROM_FactorySettings:
 	PUSH       R7
 	LDI        R27, 1
 	CP         R2, R27
-	BREQ       L__EEPROM_FactorySettings1101
+	BREQ       L__EEPROM_FactorySettings1121
 	JMP        L_EEPROM_FactorySettings559
-L__EEPROM_FactorySettings1101:
+L__EEPROM_FactorySettings1121:
 ;Solar_Auto_Switcher.c,1700 :: 		Mini_Battery_Voltage=24.5,
 	LDI        R27, 0
 	STS        _Mini_Battery_Voltage+0, R27
@@ -6943,9 +6935,9 @@ L_EEPROM_FactorySettings559:
 ;Solar_Auto_Switcher.c,1724 :: 		if (period==0) // winter timer
 	LDI        R27, 0
 	CP         R2, R27
-	BREQ       L__EEPROM_FactorySettings1102
+	BREQ       L__EEPROM_FactorySettings1122
 	JMP        L_EEPROM_FactorySettings560
-L__EEPROM_FactorySettings1102:
+L__EEPROM_FactorySettings1122:
 ;Solar_Auto_Switcher.c,1726 :: 		Mini_Battery_Voltage=24.5,
 	LDI        R27, 0
 	STS        _Mini_Battery_Voltage+0, R27
@@ -7149,20 +7141,6 @@ L_EEPROM_FactorySettings560:
 	LDI        R27, 0
 	MOV        R3, R27
 	CALL       _EEPROM_Write+0
-;Solar_Auto_Switcher.c,1753 :: 		EEPROM_Write(0x49,0); //  timer1_ison
-	CLR        R4
-	LDI        R27, 73
-	MOV        R2, R27
-	LDI        R27, 0
-	MOV        R3, R27
-	CALL       _EEPROM_Write+0
-;Solar_Auto_Switcher.c,1754 :: 		EEPROM_Write(0x50,0); // timer2_is on
-	CLR        R4
-	LDI        R27, 80
-	MOV        R2, R27
-	LDI        R27, 0
-	MOV        R3, R27
-	CALL       _EEPROM_Write+0
 ;Solar_Auto_Switcher.c,1755 :: 		EEPROM_Write(0x15,0); // voltage protector not enabled as default
 	CLR        R4
 	LDI        R27, 21
@@ -7191,11 +7169,11 @@ _RunTimersNowCheck:
 	PUSH       R5
 	IN         R27, PIND+0
 	SBRS       R27, 0
-	JMP        L__RunTimersNowCheck863
+	JMP        L__RunTimersNowCheck871
 	IN         R27, PINC+0
 	SBRC       R27, 0
-	JMP        L__RunTimersNowCheck862
-L__RunTimersNowCheck859:
+	JMP        L__RunTimersNowCheck870
+L__RunTimersNowCheck867:
 ;Solar_Auto_Switcher.c,1780 :: 		Delay_ms(5000);
 	LDI        R18, 203
 	LDI        R17, 236
@@ -7211,20 +7189,20 @@ L_RunTimersNowCheck564:
 ;Solar_Auto_Switcher.c,1781 :: 		if (Increment==1 && Exit==0)
 	IN         R27, PIND+0
 	SBRS       R27, 0
-	JMP        L__RunTimersNowCheck861
+	JMP        L__RunTimersNowCheck869
 	IN         R27, PINC+0
 	SBRC       R27, 0
-	JMP        L__RunTimersNowCheck860
-L__RunTimersNowCheck858:
+	JMP        L__RunTimersNowCheck868
+L__RunTimersNowCheck866:
 ;Solar_Auto_Switcher.c,1783 :: 		RunLoadsByBass++;
 	LDS        R16, _RunLoadsByBass+0
 	SUBI       R16, 255
 	STS        _RunLoadsByBass+0, R16
 ;Solar_Auto_Switcher.c,1784 :: 		if (  RunLoadsByBass==1 ) Relay_L_Solar=1;
 	CPI        R16, 1
-	BREQ       L__RunTimersNowCheck1104
+	BREQ       L__RunTimersNowCheck1124
 	JMP        L_RunTimersNowCheck569
-L__RunTimersNowCheck1104:
+L__RunTimersNowCheck1124:
 	IN         R27, PORTD+0
 	SBR        R27, 64
 	OUT        PORTD+0, R27
@@ -7232,9 +7210,9 @@ L_RunTimersNowCheck569:
 ;Solar_Auto_Switcher.c,1785 :: 		if (RunLoadsByBass>=2 )
 	LDS        R16, _RunLoadsByBass+0
 	CPI        R16, 2
-	BRSH       L__RunTimersNowCheck1105
+	BRSH       L__RunTimersNowCheck1125
 	JMP        L_RunTimersNowCheck570
-L__RunTimersNowCheck1105:
+L__RunTimersNowCheck1125:
 ;Solar_Auto_Switcher.c,1787 :: 		Delay_ms(5000);
 	LDI        R18, 203
 	LDI        R17, 236
@@ -7254,9 +7232,9 @@ L_RunTimersNowCheck571:
 ;Solar_Auto_Switcher.c,1789 :: 		}
 L_RunTimersNowCheck570:
 ;Solar_Auto_Switcher.c,1790 :: 		LCD_OUT(1,15,"B");
-	LDI        R27, #lo_addr(?lstr41_Solar_Auto_Switcher+0)
+	LDI        R27, #lo_addr(?lstr39_Solar_Auto_Switcher+0)
 	MOV        R4, R27
-	LDI        R27, hi_addr(?lstr41_Solar_Auto_Switcher+0)
+	LDI        R27, hi_addr(?lstr39_Solar_Auto_Switcher+0)
 	MOV        R5, R27
 	LDI        R27, 15
 	MOV        R3, R27
@@ -7264,22 +7242,22 @@ L_RunTimersNowCheck570:
 	MOV        R2, R27
 	CALL       _Lcd_Out+0
 ;Solar_Auto_Switcher.c,1781 :: 		if (Increment==1 && Exit==0)
-L__RunTimersNowCheck861:
-L__RunTimersNowCheck860:
+L__RunTimersNowCheck869:
+L__RunTimersNowCheck868:
 ;Solar_Auto_Switcher.c,1778 :: 		if(Increment==1 && Exit==0)
-L__RunTimersNowCheck863:
-L__RunTimersNowCheck862:
+L__RunTimersNowCheck871:
+L__RunTimersNowCheck870:
 ;Solar_Auto_Switcher.c,1794 :: 		if (Increment==1 && Exit==1 && Decrement==0)      // first
 	IN         R27, PIND+0
 	SBRS       R27, 0
-	JMP        L__RunTimersNowCheck869
+	JMP        L__RunTimersNowCheck877
 	IN         R27, PINC+0
 	SBRS       R27, 0
-	JMP        L__RunTimersNowCheck868
+	JMP        L__RunTimersNowCheck876
 	IN         R27, PIND+0
 	SBRC       R27, 1
-	JMP        L__RunTimersNowCheck867
-L__RunTimersNowCheck857:
+	JMP        L__RunTimersNowCheck875
+L__RunTimersNowCheck865:
 ;Solar_Auto_Switcher.c,1796 :: 		Delay_ms(2000);
 	LDI        R18, 82
 	LDI        R17, 43
@@ -7298,14 +7276,14 @@ L_RunTimersNowCheck576:
 ;Solar_Auto_Switcher.c,1797 :: 		if ( Increment==1 && Exit==1 && Decrement==0)
 	IN         R27, PIND+0
 	SBRS       R27, 0
-	JMP        L__RunTimersNowCheck866
+	JMP        L__RunTimersNowCheck874
 	IN         R27, PINC+0
 	SBRS       R27, 0
-	JMP        L__RunTimersNowCheck865
+	JMP        L__RunTimersNowCheck873
 	IN         R27, PIND+0
 	SBRC       R27, 1
-	JMP        L__RunTimersNowCheck864
-L__RunTimersNowCheck856:
+	JMP        L__RunTimersNowCheck872
+L__RunTimersNowCheck864:
 ;Solar_Auto_Switcher.c,1799 :: 		Delay_ms(5000);
 	LDI        R18, 203
 	LDI        R17, 236
@@ -7336,9 +7314,9 @@ L_RunTimersNowCheck583:
 ;Solar_Auto_Switcher.c,1802 :: 		EEPROM_Load();    // read the new values from epprom
 	CALL       _EEPROM_Load+0
 ;Solar_Auto_Switcher.c,1803 :: 		LCD_OUT(2,1,"Reset Summer    ");
-	LDI        R27, #lo_addr(?lstr42_Solar_Auto_Switcher+0)
+	LDI        R27, #lo_addr(?lstr40_Solar_Auto_Switcher+0)
 	MOV        R4, R27
-	LDI        R27, hi_addr(?lstr42_Solar_Auto_Switcher+0)
+	LDI        R27, hi_addr(?lstr40_Solar_Auto_Switcher+0)
 	MOV        R5, R27
 	LDI        R27, 1
 	MOV        R3, R27
@@ -7365,24 +7343,24 @@ L_RunTimersNowCheck585:
 	MOV        R2, R27
 	CALL       _LCD_Clear+0
 ;Solar_Auto_Switcher.c,1797 :: 		if ( Increment==1 && Exit==1 && Decrement==0)
-L__RunTimersNowCheck866:
-L__RunTimersNowCheck865:
-L__RunTimersNowCheck864:
+L__RunTimersNowCheck874:
+L__RunTimersNowCheck873:
+L__RunTimersNowCheck872:
 ;Solar_Auto_Switcher.c,1794 :: 		if (Increment==1 && Exit==1 && Decrement==0)      // first
-L__RunTimersNowCheck869:
-L__RunTimersNowCheck868:
-L__RunTimersNowCheck867:
+L__RunTimersNowCheck877:
+L__RunTimersNowCheck876:
+L__RunTimersNowCheck875:
 ;Solar_Auto_Switcher.c,1808 :: 		if (Increment==0 && Exit==1 && Decrement==1)      // first
 	IN         R27, PIND+0
 	SBRC       R27, 0
-	JMP        L__RunTimersNowCheck875
+	JMP        L__RunTimersNowCheck883
 	IN         R27, PINC+0
 	SBRS       R27, 0
-	JMP        L__RunTimersNowCheck874
+	JMP        L__RunTimersNowCheck882
 	IN         R27, PIND+0
 	SBRS       R27, 1
-	JMP        L__RunTimersNowCheck873
-L__RunTimersNowCheck855:
+	JMP        L__RunTimersNowCheck881
+L__RunTimersNowCheck863:
 ;Solar_Auto_Switcher.c,1810 :: 		Delay_ms(2000);
 	LDI        R18, 82
 	LDI        R17, 43
@@ -7401,14 +7379,14 @@ L_RunTimersNowCheck590:
 ;Solar_Auto_Switcher.c,1811 :: 		if ( Increment==0 && Exit==1 && Decrement==1)
 	IN         R27, PIND+0
 	SBRC       R27, 0
-	JMP        L__RunTimersNowCheck872
+	JMP        L__RunTimersNowCheck880
 	IN         R27, PINC+0
 	SBRS       R27, 0
-	JMP        L__RunTimersNowCheck871
+	JMP        L__RunTimersNowCheck879
 	IN         R27, PIND+0
 	SBRS       R27, 1
-	JMP        L__RunTimersNowCheck870
-L__RunTimersNowCheck854:
+	JMP        L__RunTimersNowCheck878
+L__RunTimersNowCheck862:
 ;Solar_Auto_Switcher.c,1813 :: 		Delay_ms(5000);
 	LDI        R18, 203
 	LDI        R17, 236
@@ -7438,9 +7416,9 @@ L_RunTimersNowCheck597:
 ;Solar_Auto_Switcher.c,1816 :: 		EEPROM_Load();    // read the new values from epprom
 	CALL       _EEPROM_Load+0
 ;Solar_Auto_Switcher.c,1817 :: 		LCD_OUT(2,1,"Reset Winter    ");
-	LDI        R27, #lo_addr(?lstr43_Solar_Auto_Switcher+0)
+	LDI        R27, #lo_addr(?lstr41_Solar_Auto_Switcher+0)
 	MOV        R4, R27
-	LDI        R27, hi_addr(?lstr43_Solar_Auto_Switcher+0)
+	LDI        R27, hi_addr(?lstr41_Solar_Auto_Switcher+0)
 	MOV        R5, R27
 	LDI        R27, 1
 	MOV        R3, R27
@@ -7467,21 +7445,21 @@ L_RunTimersNowCheck599:
 	MOV        R2, R27
 	CALL       _LCD_Clear+0
 ;Solar_Auto_Switcher.c,1811 :: 		if ( Increment==0 && Exit==1 && Decrement==1)
-L__RunTimersNowCheck872:
-L__RunTimersNowCheck871:
-L__RunTimersNowCheck870:
+L__RunTimersNowCheck880:
+L__RunTimersNowCheck879:
+L__RunTimersNowCheck878:
 ;Solar_Auto_Switcher.c,1808 :: 		if (Increment==0 && Exit==1 && Decrement==1)      // first
-L__RunTimersNowCheck875:
-L__RunTimersNowCheck874:
-L__RunTimersNowCheck873:
+L__RunTimersNowCheck883:
+L__RunTimersNowCheck882:
+L__RunTimersNowCheck881:
 ;Solar_Auto_Switcher.c,1841 :: 		if(Decrement==1 && Exit==0)
 	IN         R27, PIND+0
 	SBRS       R27, 1
-	JMP        L__RunTimersNowCheck879
+	JMP        L__RunTimersNowCheck887
 	IN         R27, PINC+0
 	SBRC       R27, 0
-	JMP        L__RunTimersNowCheck878
-L__RunTimersNowCheck853:
+	JMP        L__RunTimersNowCheck886
+L__RunTimersNowCheck861:
 ;Solar_Auto_Switcher.c,1843 :: 		Delay_ms(2000);
 	LDI        R18, 82
 	LDI        R17, 43
@@ -7500,11 +7478,11 @@ L_RunTimersNowCheck604:
 ;Solar_Auto_Switcher.c,1844 :: 		if (Decrement==1 && Exit==0)
 	IN         R27, PIND+0
 	SBRS       R27, 1
-	JMP        L__RunTimersNowCheck877
+	JMP        L__RunTimersNowCheck885
 	IN         R27, PINC+0
 	SBRC       R27, 0
-	JMP        L__RunTimersNowCheck876
-L__RunTimersNowCheck852:
+	JMP        L__RunTimersNowCheck884
+L__RunTimersNowCheck860:
 ;Solar_Auto_Switcher.c,1846 :: 		TurnOffLoadsByPass=1;
 	LDI        R27, 1
 	STS        _TurnOffLoadsByPass+0, R27
@@ -7520,9 +7498,9 @@ L__RunTimersNowCheck852:
 	CBR        R27, 128
 	OUT        PORTD+0, R27
 ;Solar_Auto_Switcher.c,1851 :: 		LCD_OUT(1,16," ");
-	LDI        R27, #lo_addr(?lstr44_Solar_Auto_Switcher+0)
+	LDI        R27, #lo_addr(?lstr42_Solar_Auto_Switcher+0)
 	MOV        R4, R27
-	LDI        R27, hi_addr(?lstr44_Solar_Auto_Switcher+0)
+	LDI        R27, hi_addr(?lstr42_Solar_Auto_Switcher+0)
 	MOV        R5, R27
 	LDI        R27, 16
 	MOV        R3, R27
@@ -7530,11 +7508,11 @@ L__RunTimersNowCheck852:
 	MOV        R2, R27
 	CALL       _Lcd_Out+0
 ;Solar_Auto_Switcher.c,1844 :: 		if (Decrement==1 && Exit==0)
-L__RunTimersNowCheck877:
-L__RunTimersNowCheck876:
+L__RunTimersNowCheck885:
+L__RunTimersNowCheck884:
 ;Solar_Auto_Switcher.c,1841 :: 		if(Decrement==1 && Exit==0)
-L__RunTimersNowCheck879:
-L__RunTimersNowCheck878:
+L__RunTimersNowCheck887:
+L__RunTimersNowCheck886:
 ;Solar_Auto_Switcher.c,1854 :: 		}
 L_end_RunTimersNowCheck:
 	POP        R5
@@ -7550,14 +7528,14 @@ _CheckForSet:
 ;Solar_Auto_Switcher.c,1860 :: 		if (Set==0 && Exit==0) SetUpProgram();
 	IN         R27, PIND+0
 	SBRC       R27, 2
-	JMP        L__CheckForSet882
+	JMP        L__CheckForSet890
 	IN         R27, PINC+0
 	SBRC       R27, 0
-	JMP        L__CheckForSet881
-L__CheckForSet880:
+	JMP        L__CheckForSet889
+L__CheckForSet888:
 	CALL       _SetUpProgram+0
-L__CheckForSet882:
-L__CheckForSet881:
+L__CheckForSet890:
+L__CheckForSet889:
 ;Solar_Auto_Switcher.c,1862 :: 		}
 L_end_CheckForSet:
 	RET
@@ -7578,13 +7556,13 @@ _AutoRunWithOutBatteryProtection:
 	CALL       _float_op_equ+0
 	OR         R0, R0
 	LDI        R16, 0
-	BREQ       L__AutoRunWithOutBatteryProtection1108
+	BREQ       L__AutoRunWithOutBatteryProtection1128
 	LDI        R16, 1
-L__AutoRunWithOutBatteryProtection1108:
+L__AutoRunWithOutBatteryProtection1128:
 	TST        R16
-	BRNE       L__AutoRunWithOutBatteryProtection1109
+	BRNE       L__AutoRunWithOutBatteryProtection1129
 	JMP        L_AutoRunWithOutBatteryProtection612
-L__AutoRunWithOutBatteryProtection1109:
+L__AutoRunWithOutBatteryProtection1129:
 ;Solar_Auto_Switcher.c,1869 :: 		RunWithOutBattery=true;
 	LDI        R27, 1
 	STS        _RunWithOutBattery+0, R27
@@ -7608,128 +7586,128 @@ _CheckForTimerActivationInRange:
 	CALL       _ReadHours+0
 	LDS        R17, _hours_lcd_1+0
 	CP         R16, R17
-	BRSH       L__CheckForTimerActivationInRange1111
-	JMP        L__CheckForTimerActivationInRange889
-L__CheckForTimerActivationInRange1111:
+	BRSH       L__CheckForTimerActivationInRange1131
+	JMP        L__CheckForTimerActivationInRange897
+L__CheckForTimerActivationInRange1131:
 	CALL       _ReadMinutes+0
 	LDS        R17, _minutes_lcd_1+0
 	CP         R16, R17
-	BRSH       L__CheckForTimerActivationInRange1112
-	JMP        L__CheckForTimerActivationInRange888
-L__CheckForTimerActivationInRange1112:
+	BRSH       L__CheckForTimerActivationInRange1132
+	JMP        L__CheckForTimerActivationInRange896
+L__CheckForTimerActivationInRange1132:
 	CALL       _ReadHours+0
 	LDS        R17, _hours_lcd_2+0
 	CP         R16, R17
-	BRLO       L__CheckForTimerActivationInRange1113
-	JMP        L__CheckForTimerActivationInRange887
-L__CheckForTimerActivationInRange1113:
-L__CheckForTimerActivationInRange886:
+	BRLO       L__CheckForTimerActivationInRange1133
+	JMP        L__CheckForTimerActivationInRange895
+L__CheckForTimerActivationInRange1133:
+L__CheckForTimerActivationInRange894:
 ;Solar_Auto_Switcher.c,1883 :: 		Timer_isOn=1;
 	LDI        R27, 1
 	STS        _Timer_isOn+0, R27
 ;Solar_Auto_Switcher.c,1881 :: 		if (ReadHours() >= hours_lcd_1 && ReadMinutes() >= minutes_lcd_1 && ReadHours() < hours_lcd_2  )
-L__CheckForTimerActivationInRange889:
-L__CheckForTimerActivationInRange888:
-L__CheckForTimerActivationInRange887:
+L__CheckForTimerActivationInRange897:
+L__CheckForTimerActivationInRange896:
+L__CheckForTimerActivationInRange895:
 ;Solar_Auto_Switcher.c,1888 :: 		if (ReadHours() >= hours_lcd_1 && ReadMinutes() >= minutes_lcd_1 && ReadHours() == hours_lcd_2 )
 	CALL       _ReadHours+0
 	LDS        R17, _hours_lcd_1+0
 	CP         R16, R17
-	BRSH       L__CheckForTimerActivationInRange1114
-	JMP        L__CheckForTimerActivationInRange892
-L__CheckForTimerActivationInRange1114:
+	BRSH       L__CheckForTimerActivationInRange1134
+	JMP        L__CheckForTimerActivationInRange900
+L__CheckForTimerActivationInRange1134:
 	CALL       _ReadMinutes+0
 	LDS        R17, _minutes_lcd_1+0
 	CP         R16, R17
-	BRSH       L__CheckForTimerActivationInRange1115
-	JMP        L__CheckForTimerActivationInRange891
-L__CheckForTimerActivationInRange1115:
+	BRSH       L__CheckForTimerActivationInRange1135
+	JMP        L__CheckForTimerActivationInRange899
+L__CheckForTimerActivationInRange1135:
 	CALL       _ReadHours+0
 	LDS        R17, _hours_lcd_2+0
 	CP         R16, R17
-	BREQ       L__CheckForTimerActivationInRange1116
-	JMP        L__CheckForTimerActivationInRange890
-L__CheckForTimerActivationInRange1116:
-L__CheckForTimerActivationInRange885:
+	BREQ       L__CheckForTimerActivationInRange1136
+	JMP        L__CheckForTimerActivationInRange898
+L__CheckForTimerActivationInRange1136:
+L__CheckForTimerActivationInRange893:
 ;Solar_Auto_Switcher.c,1891 :: 		if(ReadMinutes() < minutes_lcd_2)        // starts the load
 	CALL       _ReadMinutes+0
 	LDS        R17, _minutes_lcd_2+0
 	CP         R16, R17
-	BRLO       L__CheckForTimerActivationInRange1117
+	BRLO       L__CheckForTimerActivationInRange1137
 	JMP        L_CheckForTimerActivationInRange620
-L__CheckForTimerActivationInRange1117:
+L__CheckForTimerActivationInRange1137:
 ;Solar_Auto_Switcher.c,1893 :: 		Timer_isOn=1;
 	LDI        R27, 1
 	STS        _Timer_isOn+0, R27
 ;Solar_Auto_Switcher.c,1895 :: 		}
 L_CheckForTimerActivationInRange620:
 ;Solar_Auto_Switcher.c,1888 :: 		if (ReadHours() >= hours_lcd_1 && ReadMinutes() >= minutes_lcd_1 && ReadHours() == hours_lcd_2 )
-L__CheckForTimerActivationInRange892:
-L__CheckForTimerActivationInRange891:
-L__CheckForTimerActivationInRange890:
+L__CheckForTimerActivationInRange900:
+L__CheckForTimerActivationInRange899:
+L__CheckForTimerActivationInRange898:
 ;Solar_Auto_Switcher.c,1923 :: 		if (ReadHours() >= hours_lcd_timer2_start && ReadMinutes() >= minutes_lcd_timer2_start && ReadHours() < hours_lcd_timer2_stop )
 	CALL       _ReadHours+0
 	LDS        R17, _hours_lcd_timer2_start+0
 	CP         R16, R17
-	BRSH       L__CheckForTimerActivationInRange1118
-	JMP        L__CheckForTimerActivationInRange895
-L__CheckForTimerActivationInRange1118:
+	BRSH       L__CheckForTimerActivationInRange1138
+	JMP        L__CheckForTimerActivationInRange903
+L__CheckForTimerActivationInRange1138:
 	CALL       _ReadMinutes+0
 	LDS        R17, _minutes_lcd_timer2_start+0
 	CP         R16, R17
-	BRSH       L__CheckForTimerActivationInRange1119
-	JMP        L__CheckForTimerActivationInRange894
-L__CheckForTimerActivationInRange1119:
+	BRSH       L__CheckForTimerActivationInRange1139
+	JMP        L__CheckForTimerActivationInRange902
+L__CheckForTimerActivationInRange1139:
 	CALL       _ReadHours+0
 	LDS        R17, _hours_lcd_timer2_stop+0
 	CP         R16, R17
-	BRLO       L__CheckForTimerActivationInRange1120
-	JMP        L__CheckForTimerActivationInRange893
-L__CheckForTimerActivationInRange1120:
-L__CheckForTimerActivationInRange884:
+	BRLO       L__CheckForTimerActivationInRange1140
+	JMP        L__CheckForTimerActivationInRange901
+L__CheckForTimerActivationInRange1140:
+L__CheckForTimerActivationInRange892:
 ;Solar_Auto_Switcher.c,1925 :: 		Timer_2_isOn=1;
 	LDI        R27, 1
 	STS        _Timer_2_isOn+0, R27
 ;Solar_Auto_Switcher.c,1923 :: 		if (ReadHours() >= hours_lcd_timer2_start && ReadMinutes() >= minutes_lcd_timer2_start && ReadHours() < hours_lcd_timer2_stop )
-L__CheckForTimerActivationInRange895:
-L__CheckForTimerActivationInRange894:
-L__CheckForTimerActivationInRange893:
+L__CheckForTimerActivationInRange903:
+L__CheckForTimerActivationInRange902:
+L__CheckForTimerActivationInRange901:
 ;Solar_Auto_Switcher.c,1929 :: 		if (ReadHours() >= hours_lcd_timer2_start && ReadMinutes() >= minutes_lcd_timer2_start && ReadHours() == hours_lcd_timer2_stop )
 	CALL       _ReadHours+0
 	LDS        R17, _hours_lcd_timer2_start+0
 	CP         R16, R17
-	BRSH       L__CheckForTimerActivationInRange1121
-	JMP        L__CheckForTimerActivationInRange898
-L__CheckForTimerActivationInRange1121:
+	BRSH       L__CheckForTimerActivationInRange1141
+	JMP        L__CheckForTimerActivationInRange906
+L__CheckForTimerActivationInRange1141:
 	CALL       _ReadMinutes+0
 	LDS        R17, _minutes_lcd_timer2_start+0
 	CP         R16, R17
-	BRSH       L__CheckForTimerActivationInRange1122
-	JMP        L__CheckForTimerActivationInRange897
-L__CheckForTimerActivationInRange1122:
+	BRSH       L__CheckForTimerActivationInRange1142
+	JMP        L__CheckForTimerActivationInRange905
+L__CheckForTimerActivationInRange1142:
 	CALL       _ReadHours+0
 	LDS        R17, _hours_lcd_timer2_stop+0
 	CP         R16, R17
-	BREQ       L__CheckForTimerActivationInRange1123
-	JMP        L__CheckForTimerActivationInRange896
-L__CheckForTimerActivationInRange1123:
-L__CheckForTimerActivationInRange883:
+	BREQ       L__CheckForTimerActivationInRange1143
+	JMP        L__CheckForTimerActivationInRange904
+L__CheckForTimerActivationInRange1143:
+L__CheckForTimerActivationInRange891:
 ;Solar_Auto_Switcher.c,1931 :: 		if(ReadMinutes()<minutes_lcd_timer2_stop)
 	CALL       _ReadMinutes+0
 	LDS        R17, _minutes_lcd_timer2_stop+0
 	CP         R16, R17
-	BRLO       L__CheckForTimerActivationInRange1124
+	BRLO       L__CheckForTimerActivationInRange1144
 	JMP        L_CheckForTimerActivationInRange627
-L__CheckForTimerActivationInRange1124:
+L__CheckForTimerActivationInRange1144:
 ;Solar_Auto_Switcher.c,1933 :: 		Timer_2_isOn=1;
 	LDI        R27, 1
 	STS        _Timer_2_isOn+0, R27
 ;Solar_Auto_Switcher.c,1935 :: 		}
 L_CheckForTimerActivationInRange627:
 ;Solar_Auto_Switcher.c,1929 :: 		if (ReadHours() >= hours_lcd_timer2_start && ReadMinutes() >= minutes_lcd_timer2_start && ReadHours() == hours_lcd_timer2_stop )
-L__CheckForTimerActivationInRange898:
-L__CheckForTimerActivationInRange897:
-L__CheckForTimerActivationInRange896:
+L__CheckForTimerActivationInRange906:
+L__CheckForTimerActivationInRange905:
+L__CheckForTimerActivationInRange904:
 ;Solar_Auto_Switcher.c,1961 :: 		}  // end function
 L_end_CheckForTimerActivationInRange:
 	RET
@@ -7744,18 +7722,18 @@ _TurnLoadsOffWhenGridOff:
 	PUSH       R4
 	IN         R27, PIND+0
 	SBRS       R27, 3
-	JMP        L__TurnLoadsOffWhenGridOff903
+	JMP        L__TurnLoadsOffWhenGridOff911
 	LDS        R16, _Timer_isOn+0
 	CPI        R16, 0
-	BREQ       L__TurnLoadsOffWhenGridOff1126
-	JMP        L__TurnLoadsOffWhenGridOff902
-L__TurnLoadsOffWhenGridOff1126:
+	BREQ       L__TurnLoadsOffWhenGridOff1146
+	JMP        L__TurnLoadsOffWhenGridOff910
+L__TurnLoadsOffWhenGridOff1146:
 	LDS        R16, _RunLoadsByBass+0
 	CPI        R16, 0
-	BREQ       L__TurnLoadsOffWhenGridOff1127
-	JMP        L__TurnLoadsOffWhenGridOff901
-L__TurnLoadsOffWhenGridOff1127:
-L__TurnLoadsOffWhenGridOff900:
+	BREQ       L__TurnLoadsOffWhenGridOff1147
+	JMP        L__TurnLoadsOffWhenGridOff909
+L__TurnLoadsOffWhenGridOff1147:
+L__TurnLoadsOffWhenGridOff908:
 ;Solar_Auto_Switcher.c,1969 :: 		SecondsRealTime=0;
 	LDI        R27, 0
 	STS        _SecondsRealTime+0, R27
@@ -7776,24 +7754,24 @@ L__TurnLoadsOffWhenGridOff900:
 	MOV        R2, R27
 	CALL       _LCD_Clear+0
 ;Solar_Auto_Switcher.c,1967 :: 		if(AC_Available==1 && Timer_isOn==0 && RunLoadsByBass==0 )
-L__TurnLoadsOffWhenGridOff903:
-L__TurnLoadsOffWhenGridOff902:
-L__TurnLoadsOffWhenGridOff901:
+L__TurnLoadsOffWhenGridOff911:
+L__TurnLoadsOffWhenGridOff910:
+L__TurnLoadsOffWhenGridOff909:
 ;Solar_Auto_Switcher.c,1975 :: 		if (AC_Available==1 && Timer_2_isOn==0 && RunLoadsByBass==0)  // it must be   Timer_2_isOn==0    but because of error in loading eeprom value
 	IN         R27, PIND+0
 	SBRS       R27, 3
-	JMP        L__TurnLoadsOffWhenGridOff906
+	JMP        L__TurnLoadsOffWhenGridOff914
 	LDS        R16, _Timer_2_isOn+0
 	CPI        R16, 0
-	BREQ       L__TurnLoadsOffWhenGridOff1128
-	JMP        L__TurnLoadsOffWhenGridOff905
-L__TurnLoadsOffWhenGridOff1128:
+	BREQ       L__TurnLoadsOffWhenGridOff1148
+	JMP        L__TurnLoadsOffWhenGridOff913
+L__TurnLoadsOffWhenGridOff1148:
 	LDS        R16, _RunLoadsByBass+0
 	CPI        R16, 0
-	BREQ       L__TurnLoadsOffWhenGridOff1129
-	JMP        L__TurnLoadsOffWhenGridOff904
-L__TurnLoadsOffWhenGridOff1129:
-L__TurnLoadsOffWhenGridOff899:
+	BREQ       L__TurnLoadsOffWhenGridOff1149
+	JMP        L__TurnLoadsOffWhenGridOff912
+L__TurnLoadsOffWhenGridOff1149:
+L__TurnLoadsOffWhenGridOff907:
 ;Solar_Auto_Switcher.c,1977 :: 		SecondsRealTime=0;
 	LDI        R27, 0
 	STS        _SecondsRealTime+0, R27
@@ -7814,9 +7792,9 @@ L__TurnLoadsOffWhenGridOff899:
 	MOV        R2, R27
 	CALL       _LCD_Clear+0
 ;Solar_Auto_Switcher.c,1975 :: 		if (AC_Available==1 && Timer_2_isOn==0 && RunLoadsByBass==0)  // it must be   Timer_2_isOn==0    but because of error in loading eeprom value
-L__TurnLoadsOffWhenGridOff906:
-L__TurnLoadsOffWhenGridOff905:
-L__TurnLoadsOffWhenGridOff904:
+L__TurnLoadsOffWhenGridOff914:
+L__TurnLoadsOffWhenGridOff913:
+L__TurnLoadsOffWhenGridOff912:
 ;Solar_Auto_Switcher.c,1983 :: 		}
 L_end_TurnLoadsOffWhenGridOff:
 	POP        R4
@@ -7835,12 +7813,12 @@ _CheckForVoltageProtection:
 	PUSH       R5
 	LDS        R16, _VoltageProtectionEnable+0
 	CPI        R16, 1
-	BREQ       L__CheckForVoltageProtection1131
+	BREQ       L__CheckForVoltageProtection1151
 	JMP        L_CheckForVoltageProtection634
-L__CheckForVoltageProtection1131:
-	LDI        R27, #lo_addr(?lstr45_Solar_Auto_Switcher+0)
+L__CheckForVoltageProtection1151:
+	LDI        R27, #lo_addr(?lstr43_Solar_Auto_Switcher+0)
 	MOV        R4, R27
-	LDI        R27, hi_addr(?lstr45_Solar_Auto_Switcher+0)
+	LDI        R27, hi_addr(?lstr43_Solar_Auto_Switcher+0)
 	MOV        R5, R27
 	LDI        R27, 16
 	MOV        R3, R27
@@ -7849,9 +7827,9 @@ L__CheckForVoltageProtection1131:
 	CALL       _Lcd_Out+0
 	JMP        L_CheckForVoltageProtection635
 L_CheckForVoltageProtection634:
-	LDI        R27, #lo_addr(?lstr46_Solar_Auto_Switcher+0)
+	LDI        R27, #lo_addr(?lstr44_Solar_Auto_Switcher+0)
 	MOV        R4, R27
-	LDI        R27, hi_addr(?lstr46_Solar_Auto_Switcher+0)
+	LDI        R27, hi_addr(?lstr44_Solar_Auto_Switcher+0)
 	MOV        R5, R27
 	LDI        R27, 16
 	MOV        R3, R27
@@ -7862,11 +7840,11 @@ L_CheckForVoltageProtection635:
 ;Solar_Auto_Switcher.c,1988 :: 		if(Exit==1 && Set==0 )
 	IN         R27, PINC+0
 	SBRS       R27, 0
-	JMP        L__CheckForVoltageProtection912
+	JMP        L__CheckForVoltageProtection920
 	IN         R27, PIND+0
 	SBRC       R27, 2
-	JMP        L__CheckForVoltageProtection911
-L__CheckForVoltageProtection908:
+	JMP        L__CheckForVoltageProtection919
+L__CheckForVoltageProtection916:
 ;Solar_Auto_Switcher.c,1990 :: 		delay_ms(2000);
 	LDI        R18, 82
 	LDI        R17, 43
@@ -7885,17 +7863,17 @@ L_CheckForVoltageProtection639:
 ;Solar_Auto_Switcher.c,1991 :: 		if(Exit==1 && Set==0 ) {
 	IN         R27, PINC+0
 	SBRS       R27, 0
-	JMP        L__CheckForVoltageProtection910
+	JMP        L__CheckForVoltageProtection918
 	IN         R27, PIND+0
 	SBRC       R27, 2
-	JMP        L__CheckForVoltageProtection909
-L__CheckForVoltageProtection907:
+	JMP        L__CheckForVoltageProtection917
+L__CheckForVoltageProtection915:
 ;Solar_Auto_Switcher.c,1992 :: 		if (VoltageProtectorEnableFlag==1)         // protector as default is enabled so make it not enabled
 	LDS        R16, _VoltageProtectorEnableFlag+0
 	CPI        R16, 1
-	BREQ       L__CheckForVoltageProtection1132
+	BREQ       L__CheckForVoltageProtection1152
 	JMP        L_CheckForVoltageProtection644
-L__CheckForVoltageProtection1132:
+L__CheckForVoltageProtection1152:
 ;Solar_Auto_Switcher.c,1994 :: 		VoltageProtectionEnable=0;
 	LDI        R27, 0
 	STS        _VoltageProtectionEnable+0, R27
@@ -7915,9 +7893,9 @@ L_CheckForVoltageProtection644:
 ;Solar_Auto_Switcher.c,1998 :: 		else if ( VoltageProtectorEnableFlag==0)
 	LDS        R16, _VoltageProtectorEnableFlag+0
 	CPI        R16, 0
-	BREQ       L__CheckForVoltageProtection1133
+	BREQ       L__CheckForVoltageProtection1153
 	JMP        L_CheckForVoltageProtection646
-L__CheckForVoltageProtection1133:
+L__CheckForVoltageProtection1153:
 ;Solar_Auto_Switcher.c,2000 :: 		VoltageProtectionEnable=1;
 	LDI        R27, 1
 	STS        _VoltageProtectionEnable+0, R27
@@ -7936,11 +7914,11 @@ L__CheckForVoltageProtection1133:
 L_CheckForVoltageProtection646:
 L_CheckForVoltageProtection645:
 ;Solar_Auto_Switcher.c,1991 :: 		if(Exit==1 && Set==0 ) {
-L__CheckForVoltageProtection910:
-L__CheckForVoltageProtection909:
+L__CheckForVoltageProtection918:
+L__CheckForVoltageProtection917:
 ;Solar_Auto_Switcher.c,1988 :: 		if(Exit==1 && Set==0 )
-L__CheckForVoltageProtection912:
-L__CheckForVoltageProtection911:
+L__CheckForVoltageProtection920:
+L__CheckForVoltageProtection919:
 ;Solar_Auto_Switcher.c,2007 :: 		}
 L_end_CheckForVoltageProtection:
 	POP        R5
@@ -7950,14 +7928,90 @@ L_end_CheckForVoltageProtection:
 	RET
 ; end of _CheckForVoltageProtection
 
+_CheckForTimerActivationOutRange:
+
+;Solar_Auto_Switcher.c,2009 :: 		CheckForTimerActivationOutRange()
+;Solar_Auto_Switcher.c,2012 :: 		if(ReadHours() >= hours_lcd_1 && ReadMinutes() >= minutes_lcd_1 && ReadHours() >= hours_lcd_2 && ReadMinutes()>=minutes_lcd_2)
+	CALL       _ReadHours+0
+	LDS        R17, _hours_lcd_1+0
+	CP         R16, R17
+	BRSH       L__CheckForTimerActivationOutRange1155
+	JMP        L__CheckForTimerActivationOutRange926
+L__CheckForTimerActivationOutRange1155:
+	CALL       _ReadMinutes+0
+	LDS        R17, _minutes_lcd_1+0
+	CP         R16, R17
+	BRSH       L__CheckForTimerActivationOutRange1156
+	JMP        L__CheckForTimerActivationOutRange925
+L__CheckForTimerActivationOutRange1156:
+	CALL       _ReadHours+0
+	LDS        R17, _hours_lcd_2+0
+	CP         R16, R17
+	BRSH       L__CheckForTimerActivationOutRange1157
+	JMP        L__CheckForTimerActivationOutRange924
+L__CheckForTimerActivationOutRange1157:
+	CALL       _ReadMinutes+0
+	LDS        R17, _minutes_lcd_2+0
+	CP         R16, R17
+	BRSH       L__CheckForTimerActivationOutRange1158
+	JMP        L__CheckForTimerActivationOutRange923
+L__CheckForTimerActivationOutRange1158:
+L__CheckForTimerActivationOutRange922:
+;Solar_Auto_Switcher.c,2014 :: 		Timer_isOn=0;
+	LDI        R27, 0
+	STS        _Timer_isOn+0, R27
+;Solar_Auto_Switcher.c,2012 :: 		if(ReadHours() >= hours_lcd_1 && ReadMinutes() >= minutes_lcd_1 && ReadHours() >= hours_lcd_2 && ReadMinutes()>=minutes_lcd_2)
+L__CheckForTimerActivationOutRange926:
+L__CheckForTimerActivationOutRange925:
+L__CheckForTimerActivationOutRange924:
+L__CheckForTimerActivationOutRange923:
+;Solar_Auto_Switcher.c,2017 :: 		if (ReadHours() >= hours_lcd_timer2_start && ReadMinutes() >= minutes_lcd_timer2_start && ReadHours() >= hours_lcd_timer2_stop && ReadMinutes()>=minutes_lcd_timer2_stop)
+	CALL       _ReadHours+0
+	LDS        R17, _hours_lcd_timer2_start+0
+	CP         R16, R17
+	BRSH       L__CheckForTimerActivationOutRange1159
+	JMP        L__CheckForTimerActivationOutRange930
+L__CheckForTimerActivationOutRange1159:
+	CALL       _ReadMinutes+0
+	LDS        R17, _minutes_lcd_timer2_start+0
+	CP         R16, R17
+	BRSH       L__CheckForTimerActivationOutRange1160
+	JMP        L__CheckForTimerActivationOutRange929
+L__CheckForTimerActivationOutRange1160:
+	CALL       _ReadHours+0
+	LDS        R17, _hours_lcd_timer2_stop+0
+	CP         R16, R17
+	BRSH       L__CheckForTimerActivationOutRange1161
+	JMP        L__CheckForTimerActivationOutRange928
+L__CheckForTimerActivationOutRange1161:
+	CALL       _ReadMinutes+0
+	LDS        R17, _minutes_lcd_timer2_stop+0
+	CP         R16, R17
+	BRSH       L__CheckForTimerActivationOutRange1162
+	JMP        L__CheckForTimerActivationOutRange927
+L__CheckForTimerActivationOutRange1162:
+L__CheckForTimerActivationOutRange921:
+;Solar_Auto_Switcher.c,2019 :: 		Timer_2_isOn=0;
+	LDI        R27, 0
+	STS        _Timer_2_isOn+0, R27
+;Solar_Auto_Switcher.c,2017 :: 		if (ReadHours() >= hours_lcd_timer2_start && ReadMinutes() >= minutes_lcd_timer2_start && ReadHours() >= hours_lcd_timer2_stop && ReadMinutes()>=minutes_lcd_timer2_stop)
+L__CheckForTimerActivationOutRange930:
+L__CheckForTimerActivationOutRange929:
+L__CheckForTimerActivationOutRange928:
+L__CheckForTimerActivationOutRange927:
+;Solar_Auto_Switcher.c,2021 :: 		}
+L_end_CheckForTimerActivationOutRange:
+	RET
+; end of _CheckForTimerActivationOutRange
+
 _main:
 	LDI        R27, 255
 	OUT        SPL+0, R27
 	LDI        R27, 0
 	OUT        SPL+1, R27
 
-;Solar_Auto_Switcher.c,2009 :: 		void main() {
-;Solar_Auto_Switcher.c,2010 :: 		Config();
+;Solar_Auto_Switcher.c,2023 :: 		void main() {
+;Solar_Auto_Switcher.c,2024 :: 		Config();
 	PUSH       R2
 	PUSH       R3
 	PUSH       R4
@@ -7965,15 +8019,15 @@ _main:
 	PUSH       R6
 	PUSH       R7
 	CALL       _Config+0
-;Solar_Auto_Switcher.c,2011 :: 		ADCBattery(); // adc configuartion for adc
+;Solar_Auto_Switcher.c,2025 :: 		ADCBattery(); // adc configuartion for adc
 	CALL       _ADCBattery+0
-;Solar_Auto_Switcher.c,2012 :: 		EEPROM_Load(); // load params programs
+;Solar_Auto_Switcher.c,2026 :: 		EEPROM_Load(); // load params programs
 	CALL       _EEPROM_Load+0
-;Solar_Auto_Switcher.c,2013 :: 		TWI_Config();
+;Solar_Auto_Switcher.c,2027 :: 		TWI_Config();
 	CALL       _TWI_Config+0
-;Solar_Auto_Switcher.c,2014 :: 		Config_Interrupts();
+;Solar_Auto_Switcher.c,2028 :: 		Config_Interrupts();
 	CALL       _Config_Interrupts+0
-;Solar_Auto_Switcher.c,2015 :: 		ReadBytesFromEEprom(0x30,(unsigned short *)&Mini_Battery_Voltage,4);       // Loads will cut of this voltgage
+;Solar_Auto_Switcher.c,2029 :: 		ReadBytesFromEEprom(0x30,(unsigned short *)&Mini_Battery_Voltage,4);       // Loads will cut of this voltgage
 	LDI        R27, 4
 	MOV        R6, R27
 	LDI        R27, 0
@@ -7987,7 +8041,7 @@ _main:
 	LDI        R27, 0
 	MOV        R3, R27
 	CALL       _ReadBytesFromEEprom+0
-;Solar_Auto_Switcher.c,2016 :: 		ReadBytesFromEEprom(0x40,(unsigned short *)&StartLoadsVoltage,4);         //Loads will start based on this voltage
+;Solar_Auto_Switcher.c,2030 :: 		ReadBytesFromEEprom(0x40,(unsigned short *)&StartLoadsVoltage,4);         //Loads will start based on this voltage
 	LDI        R27, 4
 	MOV        R6, R27
 	LDI        R27, 0
@@ -8001,7 +8055,7 @@ _main:
 	LDI        R27, 0
 	MOV        R3, R27
 	CALL       _ReadBytesFromEEprom+0
-;Solar_Auto_Switcher.c,2017 :: 		ReadBytesFromEEprom(0x45,(unsigned short *)&startupTIme_1,2);
+;Solar_Auto_Switcher.c,2031 :: 		ReadBytesFromEEprom(0x45,(unsigned short *)&startupTIme_1,2);
 	LDI        R27, 2
 	MOV        R6, R27
 	LDI        R27, 0
@@ -8015,7 +8069,7 @@ _main:
 	LDI        R27, 0
 	MOV        R3, R27
 	CALL       _ReadBytesFromEEprom+0
-;Solar_Auto_Switcher.c,2018 :: 		ReadBytesFromEEprom(0x47,(unsigned short *)&startupTIme_2,2);
+;Solar_Auto_Switcher.c,2032 :: 		ReadBytesFromEEprom(0x47,(unsigned short *)&startupTIme_2,2);
 	LDI        R27, 2
 	MOV        R6, R27
 	LDI        R27, 0
@@ -8029,7 +8083,7 @@ _main:
 	LDI        R27, 0
 	MOV        R3, R27
 	CALL       _ReadBytesFromEEprom+0
-;Solar_Auto_Switcher.c,2019 :: 		ReadBytesFromEEprom(0x51,(unsigned short *)&Mini_Battery_Voltage_T2,4);
+;Solar_Auto_Switcher.c,2033 :: 		ReadBytesFromEEprom(0x51,(unsigned short *)&Mini_Battery_Voltage_T2,4);
 	LDI        R27, 4
 	MOV        R6, R27
 	LDI        R27, 0
@@ -8043,7 +8097,7 @@ _main:
 	LDI        R27, 0
 	MOV        R3, R27
 	CALL       _ReadBytesFromEEprom+0
-;Solar_Auto_Switcher.c,2020 :: 		ReadBytesFromEEprom(0x55,(unsigned short *)&StartLoadsVoltage_T2,4);
+;Solar_Auto_Switcher.c,2034 :: 		ReadBytesFromEEprom(0x55,(unsigned short *)&StartLoadsVoltage_T2,4);
 	LDI        R27, 4
 	MOV        R6, R27
 	LDI        R27, 0
@@ -8057,38 +8111,40 @@ _main:
 	LDI        R27, 0
 	MOV        R3, R27
 	CALL       _ReadBytesFromEEprom+0
-;Solar_Auto_Switcher.c,2021 :: 		while(1)
-L_main647:
-;Solar_Auto_Switcher.c,2023 :: 		CheckForSet();
+;Solar_Auto_Switcher.c,2035 :: 		while(1)
+L_main653:
+;Solar_Auto_Switcher.c,2037 :: 		CheckForSet();
 	CALL       _CheckForSet+0
-;Solar_Auto_Switcher.c,2024 :: 		CheckForTimerActivationInRange();
+;Solar_Auto_Switcher.c,2038 :: 		CheckForTimerActivationInRange();
 	CALL       _CheckForTimerActivationInRange+0
-;Solar_Auto_Switcher.c,2025 :: 		AutoRunWithOutBatteryProtection(); // to auto select run with battery protection or not
+;Solar_Auto_Switcher.c,2039 :: 		CheckForTimerActivationOutRange();
+	CALL       _CheckForTimerActivationOutRange+0
+;Solar_Auto_Switcher.c,2040 :: 		AutoRunWithOutBatteryProtection(); // to auto select run with battery protection or not
 	CALL       _AutoRunWithOutBatteryProtection+0
-;Solar_Auto_Switcher.c,2026 :: 		RunTimersNowCheck();
+;Solar_Auto_Switcher.c,2041 :: 		RunTimersNowCheck();
 	CALL       _RunTimersNowCheck+0
-;Solar_Auto_Switcher.c,2027 :: 		CheckForVoltageProtection();
+;Solar_Auto_Switcher.c,2042 :: 		CheckForVoltageProtection();
 	CALL       _CheckForVoltageProtection+0
-;Solar_Auto_Switcher.c,2028 :: 		Screen_1();
+;Solar_Auto_Switcher.c,2043 :: 		Screen_1();
 	CALL       _Screen_1+0
-;Solar_Auto_Switcher.c,2029 :: 		Check_Timers();
+;Solar_Auto_Switcher.c,2044 :: 		Check_Timers();
 	CALL       _Check_Timers+0
-;Solar_Auto_Switcher.c,2030 :: 		TurnLoadsOffWhenGridOff();        // sometine when grid comes fast and cut it will not make interrupt so this second check for loads off
+;Solar_Auto_Switcher.c,2045 :: 		TurnLoadsOffWhenGridOff();        // sometine when grid comes fast and cut it will not make interrupt so this second check for loads off
 	CALL       _TurnLoadsOffWhenGridOff+0
-;Solar_Auto_Switcher.c,2033 :: 		Delay_ms(50);
+;Solar_Auto_Switcher.c,2048 :: 		Delay_ms(50);
 	LDI        R18, 3
 	LDI        R17, 8
 	LDI        R16, 120
-L_main649:
+L_main655:
 	DEC        R16
-	BRNE       L_main649
+	BRNE       L_main655
 	DEC        R17
-	BRNE       L_main649
+	BRNE       L_main655
 	DEC        R18
-	BRNE       L_main649
-;Solar_Auto_Switcher.c,2034 :: 		} // end while
-	JMP        L_main647
-;Solar_Auto_Switcher.c,2035 :: 		}   // end main
+	BRNE       L_main655
+;Solar_Auto_Switcher.c,2049 :: 		} // end while
+	JMP        L_main653
+;Solar_Auto_Switcher.c,2050 :: 		}   // end main
 L_end_main:
 	POP        R7
 	POP        R6

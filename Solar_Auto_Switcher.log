@@ -4,7 +4,8 @@ hint: 0	1004	interrupt handler (Interrupt_INT1 at 0x0004)	Solar_Auto_Switcher.c
 hint: 0	1004	interrupt handler (Interupt_Timer_0_A_OFFTime at 0x001C)	Solar_Auto_Switcher.c
 warning: 1854	1503	Result is not defined in function: 'RunTimersNowCheck'	Solar_Auto_Switcher.c
 warning: 2007	1503	Result is not defined in function: 'CheckForVoltageProtection'	Solar_Auto_Switcher.c
-diagnostics: 2035	123	Compiled Successfully	Solar_Auto_Switcher.c
+warning: 2021	1503	Result is not defined in function: 'CheckForTimerActivationOutRange'	Solar_Auto_Switcher.c
+diagnostics: 2050	123	Compiled Successfully	Solar_Auto_Switcher.c
 hint: 1535	1164	Variable 'numberOfSamples' has been eliminated by optimizer	Solar_Auto_Switcher.c
 hint: 1536	1164	Variable 'numberOfAverage' has been eliminated by optimizer	Solar_Auto_Switcher.c
 hint: 1537	1164	Variable 'sum' has been eliminated by optimizer	Solar_Auto_Switcher.c
@@ -14,11 +15,11 @@ diagnostics: 0	122	Compilation Started	ds1307.h
 diagnostics: 268	123	Compiled Successfully	ds1307.c
 diagnostics: 0	122	Compilation Started	Backup.c
 diagnostics: 0	123	Compiled Successfully	Backup.c
-diagnostics: 0	127	All files Compiled in 531 ms	 
+diagnostics: 0	127	All files Compiled in 609 ms	 
 hint: 0	1144	Used RX (bytes): 32 (100%)   Free RX (bytes): 0 (0%)	Used RX (bytes): 32 (100%)   Free RX (bytes): 0 (0%)
 hint: 0	1144	Static RAM (bytes): 391   Dynamic RAM (bytes): 1657	Static RAM (bytes): 391   Dynamic RAM (bytes): 1657
-hint: 0	1144	Used ROM (bytes): 28222 (98%)  Free ROM (bytes): 450 (2%)	Used ROM (bytes): 28222 (98%)  Free ROM (bytes): 450 (2%)
+hint: 0	1144	Used ROM (bytes): 28426 (99%)  Free ROM (bytes): 246 (1%)	Used ROM (bytes): 28426 (99%)  Free ROM (bytes): 246 (1%)
 diagnostics: 0	125	Project Linked Successfully	Solar_Auto_Switcher.mcpav
-diagnostics: 0	128	Linked in 187 ms	 
-diagnostics: 0	129	Project 'Solar_Auto_Switcher.mcpav' completed: 750 ms	 
-diagnostics: 0	103	Finished successfully: 29 Jan 2023, 08:43:17	Solar_Auto_Switcher.mcpav
+diagnostics: 0	128	Linked in 234 ms	 
+diagnostics: 0	129	Project 'Solar_Auto_Switcher.mcpav' completed: 906 ms	 
+diagnostics: 0	103	Finished successfully: 19 Mar 2023, 11:37:44	Solar_Auto_Switcher.mcpav

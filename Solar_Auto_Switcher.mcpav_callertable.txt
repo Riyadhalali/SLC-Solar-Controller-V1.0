@@ -166,6 +166,9 @@ main
 	CheckForTimerActivationInRange
 		ReadHours
 		ReadMinutes
+	CheckForTimerActivationOutRange
+		ReadHours
+		ReadMinutes
 	AutoRunWithOutBatteryProtection
 		float_op_equ
 			float_fpcmp1

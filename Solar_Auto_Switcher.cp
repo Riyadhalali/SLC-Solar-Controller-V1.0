@@ -251,7 +251,7 @@ void Interrupt_INT1 () iv IVT_ADDR_INT1
 {
 AcBuzzerActiveTimes=0;
 
-if( PIND.B3 ==1 && Timer_isOn==0 )
+if( PIND.B3 ==1 && Timer_isOn==0 && RunLoadsByBass==0)
 {
 
 
@@ -260,7 +260,7 @@ SecondsRealTime=0;
 LCD_Clear(2,7,16);
 }
 
-if ( PIND.B3 ==1 && Timer_2_isOn==0)
+if ( PIND.B3 ==1 && Timer_2_isOn==0 && RunLoadsByBass==0)
 {
 
 
@@ -1219,7 +1219,7 @@ LCD_CMD(_LCD_CLEAR);
 
 void SetHighVoltage()
 {
-LCD_OUT(1,1,"High AC Volt [7]");
+
 Delay_ms(500);
 LCD_Clear(2,1,16);
 while( PIND.B2 ==1)
@@ -1251,7 +1251,7 @@ LCD_CMD(_LCD_CLEAR);
 
 void SetLowVoltage()
 {
-LCD_OUT(1,1,"Low AC Volt [8]");
+
 Delay_ms(500);
 LCD_Clear(2,1,16);
 while( PIND.B2 ==1)
@@ -1600,8 +1600,8 @@ StoreBytesIntoEEprom(0x55,(unsigned short *)&StartLoadsVoltage_T2,4);
 
 EEPROM_Write(0x12,255);
 EEPROM_Write(0x13,170);
-EEPROM_Write(0x49,0);
-EEPROM_Write(0x50,0);
+
+
 EEPROM_Write(0x15,0);
 }
 
@@ -1773,6 +1773,20 @@ EEPROM_Write(0x15,1);
 
 }
 
+CheckForTimerActivationOutRange()
+{
+
+if(ReadHours() >= hours_lcd_1 && ReadMinutes() >= minutes_lcd_1 && ReadHours() >= hours_lcd_2 && ReadMinutes()>=minutes_lcd_2)
+{
+Timer_isOn=0;
+}
+
+if (ReadHours() >= hours_lcd_timer2_start && ReadMinutes() >= minutes_lcd_timer2_start && ReadHours() >= hours_lcd_timer2_stop && ReadMinutes()>=minutes_lcd_timer2_stop)
+{
+Timer_2_isOn=0;
+}
+}
+
 void main() {
 Config();
 ADCBattery();
@@ -1789,6 +1803,7 @@ while(1)
 {
 CheckForSet();
 CheckForTimerActivationInRange();
+CheckForTimerActivationOutRange();
 AutoRunWithOutBatteryProtection();
 RunTimersNowCheck();
 CheckForVoltageProtection();

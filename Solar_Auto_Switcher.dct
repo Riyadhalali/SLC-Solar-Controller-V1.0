@@ -332,6 +332,7 @@ character8x7
 check_timers
 checkforset
 checkfortimeractivationinrange
+checkfortimeractivationoutrange
 checkforvoltageprotection
 checktimeoccuredoff
 checktimeoccuredon

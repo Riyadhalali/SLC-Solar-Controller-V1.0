@@ -201,7 +201,7 @@ void Interrupt_INT1 () iv IVT_ADDR_INT1
 {
 AcBuzzerActiveTimes=0; // FOR ACTIVING BUZZER ONCE AGAIN
  //-> functions for shutting down loads if there is no timers and grid is off
-if(AC_Available==1 && Timer_isOn==0  )
+if(AC_Available==1 && Timer_isOn==0  && RunLoadsByBass==0)
 {
 //AcBuzzerActiveTimes=0; // make buzzer va  riable zero to get activated once again
 ///old_timer_1=ReadMinutes();  // time must be updated after grid is off
@@ -210,7 +210,7 @@ Relay_L_Solar=0;
 LCD_Clear(2,7,16); // to clear lcd when grid is not available
 }
 
-if (AC_Available==1 && Timer_2_isOn==0)  // it must be   Timer_2_isOn==0    but because of error in loading eeprom value
+if (AC_Available==1 && Timer_2_isOn==0 && RunLoadsByBass==0)  // it must be   Timer_2_isOn==0    but because of error in loading eeprom value
 {
 //AcBuzzerActiveTimes=0; // make buzzer va  riable zero to get activated once again
 ///old_timer_2=ReadMinutes();   // time must be updated after grid is off
@@ -942,7 +942,7 @@ if(set_ds1307_hours>23) set_ds1307_hours=0;
 if (set_ds1307_hours<0) set_ds1307_hours=0;
 } // end while decrement or increment
 } // end first while
-//******************************’Minutes Program********************************
+//******************************ï¿½Minutes Program********************************
 Delay_ms(500);
 LCD_Clear(1,1,16);
 //LCD_OUT(1,1,"Set Time[M] [10]");
@@ -1321,7 +1321,7 @@ LCD_CMD(_LCD_CLEAR);
 //----------------------------Program 11 Set High Voltage-----------------------
 void SetHighVoltage()
 {
-LCD_OUT(1,1,"High AC Volt [7]");
+//LCD_OUT(1,1,"High AC Volt [7]");
 Delay_ms(500);
 LCD_Clear(2,1,16);
 while(Set==1)
@@ -1353,7 +1353,7 @@ LCD_CMD(_LCD_CLEAR);
 //-------------------------------Program 12-------------------------------------
 void SetLowVoltage()
 {
-LCD_OUT(1,1,"Low AC Volt [8]");
+//LCD_OUT(1,1,"Low AC Volt [8]");
 Delay_ms(500);
 LCD_Clear(2,1,16);
 while(Set==1)
@@ -1750,8 +1750,8 @@ StoreBytesIntoEEprom(0x55,(unsigned short *)&StartLoadsVoltage_T2,4);
 //global variables
 EEPROM_Write(0x12,255); //  high voltage Grid
 EEPROM_Write(0x13,170); // load low voltage
-EEPROM_Write(0x49,0); //  timer1_ison
-EEPROM_Write(0x50,0); // timer2_is on
+//EEPROM_Write(0x49,0); //  timer1_ison
+//EEPROM_Write(0x50,0); // timer2_is on
 EEPROM_Write(0x15,0); // voltage protector not enabled as default
 }
 //---------------This function is for making timers run now---------------------
@@ -2006,6 +2006,20 @@ EEPROM_Write(0x15,1);
 
 }
 //------------------------------------------------------------------------------
+CheckForTimerActivationOutRange()
+{
+ //-a turn off loads out of time range  range
+if(ReadHours() >= hours_lcd_1 && ReadMinutes() >= minutes_lcd_1 && ReadHours() >= hours_lcd_2 && ReadMinutes()>=minutes_lcd_2)
+{
+Timer_isOn=0;
+}
+
+if (ReadHours() >= hours_lcd_timer2_start && ReadMinutes() >= minutes_lcd_timer2_start && ReadHours() >= hours_lcd_timer2_stop && ReadMinutes()>=minutes_lcd_timer2_stop)
+{
+Timer_2_isOn=0;
+}
+}
+//------------------------------------------------------------------------------
 void main() {
 Config();
 ADCBattery(); // adc configuartion for adc
@@ -2022,6 +2036,7 @@ while(1)
 {
 CheckForSet();
 CheckForTimerActivationInRange();
+CheckForTimerActivationOutRange();
 AutoRunWithOutBatteryProtection(); // to auto select run with battery protection or not
 RunTimersNowCheck();
 CheckForVoltageProtection();
