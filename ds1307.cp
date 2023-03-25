@@ -11,6 +11,7 @@ char CheckTimeOccuredOff(char seconds_required, char minutes_required, char hour
 char CorrectionLoad();
 unsigned short ReadMinutes();
 unsigned short ReadHours();
+unsigned short ReadSeconds();
 
 
 
@@ -62,7 +63,7 @@ typedef unsigned long int uintmax_t;
 unsigned short Data;
 unsigned short reg_1;
 unsigned short reg_2;
-unsigned short Full_Minutes,Full_Hours;
+unsigned short Full_Minutes,Full_Hours,Full_Seconds;
 unsigned short seconds_reg_1_On;
 unsigned short minutes_reg_1_On,hours_reg_1_On;
 unsigned short seconds_reg_2_On;
@@ -105,6 +106,19 @@ TWI_Stop();
 return Data;
 }
 
+unsigned short ReadSeconds()
+{
+
+Read_DS1307(0x00);
+reg_1 = Data & 0x0F;
+reg_2 = Data & 0xF0;
+reg_2 = reg_2 >> 4;
+Full_Seconds=(reg_2<<4)+reg_1;
+Full_Seconds=Bcd2Dec(Full_Seconds);
+return Full_Seconds;
+}
+
+
 unsigned short ReadMinutes()
 {
 
@@ -128,7 +142,7 @@ Full_Hours=(reg_2<<4)+reg_1;
 Full_Hours=Bcd2Dec(Full_Hours);
 return Full_Hours;
 }
-#line 117 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/ds1307.c"
+#line 130 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/ds1307.c"
 unsigned short ReadDate (unsigned short date_address)
 {
 Read_DS1307(date_address);
@@ -139,7 +153,7 @@ date=(reg_2<<4)+reg_1;
 date=Bcd2Dec(date);
 return date;
 }
-#line 156 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/ds1307.c"
+#line 169 "F:/ENG. RIYAD/Ref/Ref Codes/Riyad_Complete_Codes/ATMEGA32A/Solar Auto Switcher/Solar Loads Control V1.0/MikroC/ds1307.c"
 void Read_time()
 {
 

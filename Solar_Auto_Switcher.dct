@@ -334,6 +334,7 @@ checkforset
 checkfortimeractivationinrange
 checkfortimeractivationoutrange
 checkforvoltageprotection
+checksystembatterymode
 checktimeoccuredoff
 checktimeoccuredon
 clkpce
@@ -540,6 +541,7 @@ eifr
 eimsk
 error_voltage
 errorlist
+every30minutesinitscreen
 exclk
 exclk_bit
 exp
@@ -605,6 +607,7 @@ fontsystem5x7_v2
 frexp
 full_hours
 full_minutes
+full_seconds
 get_fosc_khz
 getvoltagenow
 glcd_box
@@ -751,6 +754,9 @@ icr1l7
 icr1l7_bit
 ics_auto
 ics_off
+initedscreenonce
+initlcd_everyhour
+initscreentimer
 int0
 int0_bit
 int1
@@ -1310,6 +1316,7 @@ readhours
 readminutes
 readminutesminusoldtimer_1
 readminutesminusoldtimer_2
+readseconds
 realtimeloop
 refs0
 refs0_bit
@@ -1579,6 +1586,7 @@ stx_data_ack
 stx_data_nack
 stx_last_data
 system3x5
+systembatterymode
 tan
 tanh
 tccr0a
@@ -1910,6 +1918,8 @@ umsel00_bit
 umsel01
 umsel01_bit
 updatescreen
+updatescreentime
+updatescreentimerinit_timer_2
 upe0
 upe0_bit
 upm00

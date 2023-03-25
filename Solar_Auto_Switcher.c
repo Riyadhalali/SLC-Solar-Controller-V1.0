@@ -81,10 +81,14 @@ unsigned int SecondsRealTime=0;         // for holding reading seconds in real t
 unsigned int SecondsRealTimePv_ReConnect_T1=0,SecondsRealTimePv_ReConnect_T2=0; // for reactive timers in sequence when timer switch off because off battery and wants to reload
 unsigned int realTimeLoop=0;
 bool RunWithOutBattery=true;
-int const ButtonDelay=200;
+int const ButtonDelay=100;
 char RunLoadsByBass=0;
 char TurnOffLoadsByPass=0; // to turn off for error
 char VoltageProtectorEnableFlag=1;
+char every30MinutesInitScreen=0;
+char initedScreenOnce=0;
+unsigned int UpdateScreenTime=0;
+char SystemBatteryMode=0;
 //-----------------------------------Functions---------------------------------
 void EEPROM_Load();
 void Gpio_Init();
@@ -218,9 +222,8 @@ SecondsRealTime=0;
 Relay_L_Solar_2=0;
 LCD_Clear(2,7,16); // to clear lcd when grid is not available
 }
-LCD_Init();
+
 LCD_CMD(_LCD_CLEAR);
-LCD_CMD(_LCD_CURSOR_OFF);
 INTF1_bit=1;     //clear  flag
 }
 
@@ -428,12 +431,12 @@ LCD_Init();
 LCD_CMD(_LCD_CLEAR);
 LCD_CMD(_LCD_CURSOR_OFF);
 }*/
-if (AC_Available==0 && SecondsRealTime==startupTIme_2)
+/*if (AC_Available==0 && SecondsRealTime==startupTIme_2)
 {
 LCD_Init();
 LCD_CMD(_LCD_CLEAR);
 LCD_CMD(_LCD_CURSOR_OFF);
-}
+}*/
 
 //------------------------Functions for reactiving timers------------------------
 /*
@@ -474,14 +477,14 @@ Relay_L_Solar_2=1;
 }
 
 //--Turn Load off when battery Voltage  is Low and AC Not available and Bypass is enabled
-if (Vin_Battery<Mini_Battery_Voltage && AC_Available==1 && Timer_isOn==1 && RunWithOutBattery==false)
+if (Vin_Battery<Mini_Battery_Voltage && AC_Available==1  && RunWithOutBattery==false)
 {
 SecondsRealTimePv_ReConnect_T1=0;
 Start_Timer_0_A();         // give some time for battery voltage
 }
 
 //--Turn Load off when battery Voltage  is Low and AC Not available and Bypass is enabled
-if (Vin_Battery<Mini_Battery_Voltage_T2 && AC_Available==1 &&  Timer_2_isOn==1 && RunWithOutBattery==false)
+if (Vin_Battery<Mini_Battery_Voltage_T2 && AC_Available==1  && RunWithOutBattery==false)
 {
 SecondsRealTimePv_ReConnect_T2=0;
 Start_Timer_0_A();         // give some time for battery voltage
@@ -526,6 +529,7 @@ void SetUpProgram()
 Delay_ms(100);
 if (Set==0)
 {
+SREG_I_bit=0;     // disable interrupts
 LCD_CMD(_LCD_CLEAR);
 LCD_OUT(1,1,"Setup Program");
 Delay_ms(500);
@@ -558,14 +562,11 @@ if (Exit==1)   break;     //break out of the while loop
 //if (Exit==1)   break;
 Startup_Timers();
 if(Exit==1) break;
-break;   // to break the while
-//RunTimersNow();   // this is in the case of setting the controller for first time it give option to start timer now
-//if(Exit==1) break;
-//RestoreFactorySettings();
-//if (Exit==1)   break;       //break out of the while loop*/
 LCD_CMD(_LCD_CLEAR);
+break;   // to break the while
 
 } // end while
+SREG_I_bit=1;      //reactivate the lcd _inut timer
 }    // end main if
 }
 
@@ -589,7 +590,7 @@ LCD_Out(2,7,txt);
 //break out while loop and interupt
 if (Exit==1)
 {
-LCD_Clear(2,1,16);
+//LCD_Clear(2,1,16);
 break;     //break out of the while loop
 }
 
@@ -625,7 +626,7 @@ LCD_OUT(2,6,"M:");
 LCD_Out(2,7,txt);*/
 if (Exit==1)
 {
-LCD_Clear(2,1,16);
+//LCD_Clear(2,1,16);
 break;     //break out of the while loop
 }
  //-> to make sure that the value will never be changed until the user press increment or decrement
@@ -672,7 +673,7 @@ LCD_OUT(2,1,"H:");
 LCD_Out(2,7,txt);
 if (Exit==1)
 {
-LCD_Clear(2,1,16);
+//LCD_Clear(2,1,16);
 break;     //break out of the while loop
 }
 //-> to make sure that the value will never be changed until the user press increment or decrement
@@ -708,7 +709,7 @@ LCD_OUT(2,6,"M:");
 LCD_Out(2,7,txt);*/
 if (Exit==1)
 {
-LCD_Clear(2,1,16);
+//LCD_Clear(2,1,16);
 break;     //break out of the while loop
 }
 //-> to make sure that the value will never be changed until the user press increment or decrement
@@ -755,7 +756,7 @@ LCD_Out(2,7,txt);
 //break out while loop and interupt
 if (Exit==1)
 {
-LCD_Clear(2,1,16);
+//LCD_Clear(2,1,16);
 break;     //break out of the while loop
 }
 
@@ -873,7 +874,7 @@ LCD_OUT(2,6,"M:");
 LCD_Out(2,7,txt);*/
 if (Exit==1)
 {
-LCD_Clear(2,1,16);
+//LCD_Clear(2,1,16);
 break;     //break out of the while loop
 }
 //-> to make sure that the value will never be changed until the user press increment or decrement
@@ -1697,12 +1698,29 @@ void EEPROM_FactorySettings(char period)
 {
 if(period==1) // summer  timer
 {
-Mini_Battery_Voltage=24.5,
-StartLoadsVoltage=26.5,
-startupTIme_1 =180,
-startupTIme_2=240,
+if(SystemBatteryMode==12)
+{
+Mini_Battery_Voltage=12.0;
+StartLoadsVoltage=13.5;
+Mini_Battery_Voltage_T2=12.5,
+StartLoadsVoltage_T2=13.8;
+}
+if(SystemBatteryMode==24)
+{
+Mini_Battery_Voltage=24.5;
+StartLoadsVoltage=26.5;
 Mini_Battery_Voltage_T2=25.5,
 StartLoadsVoltage_T2=27.5;
+}
+if(SystemBatteryMode==48)
+{
+Mini_Battery_Voltage=49.0;
+StartLoadsVoltage=52.0;
+Mini_Battery_Voltage_T2=50.0,
+StartLoadsVoltage_T2=54.0;
+}
+startupTIme_1 =180,
+startupTIme_2=240,
 //*****************timer 1****************
 EEPROM_Write(0x00,8);  // writing start hours
 EEPROM_Write(0x01,0);    // writing  start minutes
@@ -1721,7 +1739,7 @@ StoreBytesIntoEEprom(0x47,(unsigned short *)&startupTIme_2,2);
 StoreBytesIntoEEprom(0x51,(unsigned short *)&Mini_Battery_Voltage_T2,4);
 StoreBytesIntoEEprom(0x55,(unsigned short *)&StartLoadsVoltage_T2,4);
 }
-if (period==0) // winter timer
+/*if (period==0) // winter timer
 {
 Mini_Battery_Voltage=24.5,
 StartLoadsVoltage=26.5,
@@ -1732,12 +1750,12 @@ StartLoadsVoltage_T2=27.5;
 //*****************timer 1****************
 EEPROM_Write(0x00,9);  // writing start hours
 EEPROM_Write(0x01,0);    // writing  start minutes
-EEPROM_Write(0x03,15);    // writing off hours
+EEPROM_Write(0x03,16);    // writing off hours
 EEPROM_Write(0x04,0);    // writing off minutes
 //****************timer 2********************
-EEPROM_Write(0x18,9);  // writing start hours
-EEPROM_Write(0x19,30);    // writing  start minutes
-EEPROM_Write(0x20,15);    // writing off hours
+EEPROM_Write(0x18,10);  // writing start hours
+EEPROM_Write(0x19,0);    // writing  start minutes
+EEPROM_Write(0x20,16);    // writing off hours
 EEPROM_Write(0x21,0);    // writing off minutes
 //**********************************************
 StoreBytesIntoEEprom(0x30,(unsigned short *)&Mini_Battery_Voltage,4);   // save float number to eeprom
@@ -1746,9 +1764,9 @@ StoreBytesIntoEEprom(0x45,(unsigned short *)&startupTIme_1,2);
 StoreBytesIntoEEprom(0x47,(unsigned short *)&startupTIme_2,2);
 StoreBytesIntoEEprom(0x51,(unsigned short *)&Mini_Battery_Voltage_T2,4);
 StoreBytesIntoEEprom(0x55,(unsigned short *)&StartLoadsVoltage_T2,4);
-}
+}*/
 //global variables
-EEPROM_Write(0x12,255); //  high voltage Grid
+EEPROM_Write(0x12,260); //  high voltage Grid
 EEPROM_Write(0x13,170); // load low voltage
 //EEPROM_Write(0x49,0); //  timer1_ison
 //EEPROM_Write(0x50,0); // timer2_is on
@@ -1757,27 +1775,10 @@ EEPROM_Write(0x15,0); // voltage protector not enabled as default
 //---------------This function is for making timers run now---------------------
 RunTimersNowCheck()
 {
-/*if (Increment==1 && Exit==0 )      // first
-{
-Delay_ms(2000);
-if ( Increment==1 && Exit==0 )
-{
-Delay_ms(2000);
-if( Increment==1 && Exit==0 )
-{
-Timer_isOn=1;
-Timer_2_isOn=1;
-LCD_OUT(2,1,"L1 L2 Running");
-Delay_ms(1000);
-LCD_CLEAR(2,1,16);
-EEPROM_Write(0x49,1);
-EEPROM_Write(0x50,1);
-} //
-}
-}*/
+
 if(Increment==1 && Exit==0)
 {
-Delay_ms(5000);
+Delay_ms(2000);
 if (Increment==1 && Exit==0)
 {
 RunLoadsByBass++;
@@ -1796,16 +1797,16 @@ if (Increment==1 && Exit==1 && Decrement==0)      // first
 Delay_ms(2000);
 if ( Increment==1 && Exit==1 && Decrement==0)
 {
-Delay_ms(5000);
+Delay_ms(2000);
 EEPROM_FactorySettings(1);        // summer time
 Delay_ms(100);
 EEPROM_Load();    // read the new values from epprom
-LCD_OUT(2,1,"Reset Summer    ");
+LCD_OUT(2,1,"Reset Done   ");
 Delay_ms(1000);
 LCD_CLEAR(2,1,16);
 }
 }
-if (Increment==0 && Exit==1 && Decrement==1)      // first
+/*if (Increment==0 && Exit==1 && Decrement==1)      // first
 {
 Delay_ms(2000);
 if ( Increment==0 && Exit==1 && Decrement==1)
@@ -1818,7 +1819,8 @@ LCD_OUT(2,1,"Reset Winter    ");
 Delay_ms(1000);
 LCD_CLEAR(2,1,16);
 }
-}///-----------------------------ShutDown Loads-----------------------------------
+}*/
+///-----------------------------ShutDown Loads-----------------------------------
 /*if (Decrement==1 )      // first
 {
 Delay_ms(1000);
@@ -2009,15 +2011,63 @@ EEPROM_Write(0x15,1);
 CheckForTimerActivationOutRange()
 {
  //-a turn off loads out of time range  range
-if(ReadHours() >= hours_lcd_1 && ReadMinutes() >= minutes_lcd_1 && ReadHours() >= hours_lcd_2 && ReadMinutes()>=minutes_lcd_2)
+if(ReadHours() >= hours_lcd_1 && ReadMinutes() >= minutes_lcd_1 && ReadHours() >= hours_lcd_2 && ReadMinutes()>=minutes_lcd_2 )
 {
 Timer_isOn=0;
 }
-
-if (ReadHours() >= hours_lcd_timer2_start && ReadMinutes() >= minutes_lcd_timer2_start && ReadHours() >= hours_lcd_timer2_stop && ReadMinutes()>=minutes_lcd_timer2_stop)
+//------------------------------------------------------------------------------
+if (ReadHours() >= hours_lcd_timer2_start && ReadMinutes() >= minutes_lcd_timer2_start && ReadHours() >= hours_lcd_timer2_stop && ReadMinutes()>=minutes_lcd_timer2_stop )
 {
 Timer_2_isOn=0;
 }
+}
+//------------------------------------------------------------------------------
+void InitLCD_EveryHour(){
+
+every30MinutesInitScreen=ReadSeconds();
+if( every30MinutesInitScreen==59  && initedScreenOnce==0  )
+{
+Lcd_Init();
+LCD_CMD(_LCD_CURSOR_OFF);
+Lcd_Cmd(_LCD_CLEAR);
+initedScreenOnce==1;
+}
+else if (every30MinutesInitScreen!=59)
+{
+initedScreenOnce==0;
+}
+}
+//------------------------------------------------------------------------------
+void UpdateScreenTimerInit_Timer_2()
+{
+WGM21_bit=1;
+CS20_bit=1; // prescalar 1024
+CS21_bit=1; //prescalar 1024
+CS22_bit=1; //prescalar 1024
+SREG_I_Bit=1;
+OCR2A=0xFF;
+OCIE2A_Bit=1;
+}
+
+void InitScreenTimer() iv  IVT_ADDR_TIMER2_COMPA
+{
+UpdateScreenTime++;
+if (UpdateScreenTime==1800)  // 60 seconds to update
+{
+LCD_Init();
+LCD_CMD(_LCD_CURSOR_OFF);
+UpdateScreenTime=0;
+}
+
+OCF2A_Bit=1;
+}
+
+void CheckSystemBatteryMode()
+{
+if (Vin_Battery>= 35 && Vin_Battery <= 60) SystemBatteryMode=48;
+else if (Vin_Battery>=18 && Vin_Battery <=32) SystemBatteryMode=24;
+else if (Vin_Battery >=1 && Vin_Battery<= 16 ) SystemBatteryMode=12;
+else SystemBatteryMode=24; // take it as default
 }
 //------------------------------------------------------------------------------
 void main() {
@@ -2032,8 +2082,11 @@ ReadBytesFromEEprom(0x45,(unsigned short *)&startupTIme_1,2);
 ReadBytesFromEEprom(0x47,(unsigned short *)&startupTIme_2,2);
 ReadBytesFromEEprom(0x51,(unsigned short *)&Mini_Battery_Voltage_T2,4);
 ReadBytesFromEEprom(0x55,(unsigned short *)&StartLoadsVoltage_T2,4);
+UpdateScreenTimerInit_Timer_2();
 while(1)
 {
+//InitLCD_EveryHour();
+CheckSystemBatteryMode();
 CheckForSet();
 CheckForTimerActivationInRange();
 CheckForTimerActivationOutRange();
@@ -2043,8 +2096,6 @@ CheckForVoltageProtection();
 Screen_1();
 Check_Timers();
 TurnLoadsOffWhenGridOff();        // sometine when grid comes fast and cut it will not make interrupt so this second check for loads off
-//LowBatteryVoltageAlarm();
-//ErrorList();
 Delay_ms(50);
 } // end while
 }   // end main

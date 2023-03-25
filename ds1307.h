@@ -13,6 +13,7 @@ char CheckTimeOccuredOff(char seconds_required, char minutes_required, char hour
 char CorrectionLoad();
 unsigned short ReadMinutes();
 unsigned short ReadHours();
+unsigned short ReadSeconds();
 //void Read_Date();
 //unsigned short Read_Day();
 //unsigned short Read_Month();
