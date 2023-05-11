@@ -82,7 +82,7 @@ unsigned int SecondsRealTime=0;         // for holding reading seconds in real t
 unsigned int SecondsRealTimePv_ReConnect_T1=0,SecondsRealTimePv_ReConnect_T2=0; // for reactive timers in sequence when timer switch off because off battery and wants to reload
 unsigned int realTimeLoop=0;
 bool RunWithOutBattery=true;
-int const ButtonDelay=100;
+char const ButtonDelay=200;
 char RunLoadsByBass=0;
 char TurnOffLoadsByPass=0; // to turn off for error
 char VoltageProtectorEnableFlag=1;
@@ -1507,7 +1507,7 @@ LCD_OUT(2,3,txt);
 
 
 //------------------------------------Read AC Voltage---------------------------
-unsigned int ReadAC()
+/*unsigned int ReadAC()
 {
 char numberOfSamples=100;
 char numberOfAverage=10;
@@ -1515,7 +1515,6 @@ unsigned long sum=0;
 unsigned long r=0;
 unsigned long max_v=0;
 char i=0;
-char j=0;
 unsigned long average=0;
 //char volt_samples[100]; //
 for (i=0;i<100;i++)
@@ -1537,17 +1536,17 @@ average+=sum/numberOfSamples;
 } // end main for average
 average=average/numberOfAverage;
 
-return average;*/
-}
+return average;
+}*/
 //---------------------------------Calculate AC---------------------------------
 void CalculateAC()
 {
-char buf[15];
+/*char buf[15];
 v=ReadAC();
 v=v*5.0/1024.0; // 5000 mah adc voltage reference
 v=255.5*v;    // 2.2K/560K+2.2K
 v/=sqrt(2);
-v=v+Error_Voltage;
+v=v+Error_Voltage;*/
 //-> to delete the error value displayed in lcd when there is not grid
 /*if (AC_Available==0 && VoltageProtectionEnable==1)   // disable the ac voltage if voltage protector is enabeled
 {
@@ -1559,12 +1558,12 @@ if (AC_Available== 0 && VoltageProtectionEnable==0) // in this if voltage protec
 {
 LCD_out(2,8,"- Grid");
 }
-VoltageProtector(v);
+//VoltageProtector(v);
 }
 //----------------------------------DisplayTimerActivation----------------------
 
 //----------------------------------Voltage Protector---------------------------
-void VoltageProtector(unsigned long voltage)
+/*void VoltageProtector(unsigned long voltage)
 {
 
 if ((voltage < Low_Voltage || voltage> High_Voltage )&& AC_Available==0 ) // ac available
@@ -1576,7 +1575,7 @@ if ((voltage>Low_Voltage && voltage < High_Voltage) && AC_Available==0)
 {
 VoltageProtectorGood=1;
 }
-}
+}*/
 
 //-----------------------------------Timer 3 -----------------------------------
 //-> this timer is used for giving some time to pv to turn off the load
@@ -1606,7 +1605,6 @@ if (Timer_Counter_3==500)              // more than 10 seconds
 if(Vin_Battery<Mini_Battery_Voltage && AC_Available==1)
 {
 SecondsRealTime=0;
-Delay_ms(500);
 Relay_L_Solar=0;
 LCD_CLEAR(2,7,16);
 }
@@ -1638,7 +1636,7 @@ if(VoltageProtectorGood==0 && AC_Available==0)
 SecondsRealTime=0;
 Relay_L_Solar=0;
 Relay_L_Solar_2=0;
-LCD_CLEAR(2,7,16);
+//LCD_CLEAR(2,7,16);
 }
 Timer_Counter_For_Grid_Turn_Off=0;
 Stop_Timer_0();
@@ -1738,6 +1736,11 @@ EEPROM_Write(0x15,0); // voltage protector not enabled as default
 void RunTimersNowCheck()
 {
 
+if(Exit==1 && Increment==0 && Decrement==0 && Set==1)
+{
+Backlight=1;
+}
+
 if(Increment==1 && Exit==0)
 {
 Backlight=1;
@@ -1819,6 +1822,7 @@ LCD_OUT(1,16," ");
 }
 }
 }
+
 //------------------------------------------------------------------------------
 
 void CheckForSet()
@@ -1843,12 +1847,10 @@ RunWithOutBattery=false;
 //-------------------Check for timer activation inside range--------------------
 void CheckForTimerActivationInRange()
 {
-
-//-a to turn on loadsinside range
+/*//-a to turn on loadsinside range
 if (ReadHours() >= hours_lcd_1 && ReadMinutes() >= minutes_lcd_1 && ReadHours() < hours_lcd_2  )
 {
 Timer_isOn=1;
-//EEPROM_Write(0x49,1);
 }
 
 //-b----------------------------------------------------------------------------
@@ -1858,39 +1860,13 @@ if (ReadHours() >= hours_lcd_1 && ReadMinutes() >= minutes_lcd_1 && ReadHours() 
 if(ReadMinutes() < minutes_lcd_2)        // starts the load
 {
 Timer_isOn=1;
-//EEPROM_Write(0x49,1);
 }
 }
-/*//-c
-if (ReadHours() <= hours_lcd_1 && ReadMinutes() >= minutes_lcd_1 && ReadHours() < hours_lcd_2  )
-{
-Timer_isOn=1;
-EEPROM_Write(0x49,1);
-}
-
-//-d
-if (ReadHours() <= hours_lcd_1 && ReadMinutes() >= minutes_lcd_1 && ReadHours() == hours_lcd_2 )
-{
-// study the state
-if(ReadMinutes() < minutes_lcd_2)        // starts the load
-{
-Timer_isOn=1;
-EEPROM_Write(0x49,1);
-}
-}*/
-
-//-e to turn off loads out side range on time
-/*if (ReadHours() >= hours_lcd_2 &&  ReadMinutes()>minutes_lcd_2 && RunLoadsByBass==0 )
-{
-Timer_isOn=0;
-EEPROM_Write(0x49,0);
-}*/
 //******************************************************************************
 //-a turn on loads in time range
 if (ReadHours() >= hours_lcd_timer2_start && ReadMinutes() >= minutes_lcd_timer2_start && ReadHours() < hours_lcd_timer2_stop )
 {
 Timer_2_isOn=1;
-//EEPROM_Write(0x50,1);
 }
 //-b turn on loads in time range
 if (ReadHours() >= hours_lcd_timer2_start && ReadMinutes() >= minutes_lcd_timer2_start && ReadHours() == hours_lcd_timer2_stop )
@@ -1898,36 +1874,51 @@ if (ReadHours() >= hours_lcd_timer2_start && ReadMinutes() >= minutes_lcd_timer2
 if(ReadMinutes()<minutes_lcd_timer2_stop)
 {
 Timer_2_isOn=1;
-//EEPROM_Write(0x50,1);
-}
-}
-//-> turn off loads in time range
-/*if (ReadHours() >= hours_lcd_timer2_stop && ReadMinutes()>minutes_lcd_timer2_stop && RunLoadsByBass==0 )
-{
-Timer_2_isOn=0;
-EEPROM_Write(0x50,0);
-}*/
-
-/*//-c
-if (ReadHours() <= hours_lcd_timer2_start && ReadMinutes() >= minutes_lcd_timer2_start && ReadHours() < hours_lcd_timer2_stop  )
-{
-Timer_2_isOn=1;
-//EEPROM_Write(0x49,1);
-}
-
-//-d
-if (ReadHours() <= hours_lcd_timer2_start && ReadMinutes() >= minutes_lcd_timer2_start && ReadHours() == hours_lcd_timer2_stop )
-{
-// study the state
-if(ReadMinutes() < minutes_lcd_timer2_stop)        // starts the load
-{
-Timer_2_isOn=1;
-//EEPROM_Write(0x49,1);
 }
 }*/
+//*****************************************************************************
+///////////////////////////////////////////////////////////////////////////////
+//-> new update for time
+//-> first compare is hours
+if(ReadHours() > hours_lcd_1 && ReadHours()< hours_lcd_2)
+{
+Timer_isOn=1;
+}
+//-> seconds compare hours if equal now then compare minutes
+if(ReadHours()== hours_lcd_1 || ReadHours()== hours_lcd_2)
+{
+if(ReadHours()==hours_lcd_1)
+{
+//-> minutes must be bigger
+if(ReadMinutes()>=minutes_lcd_1) Timer_isOn=1;
+}
+if(ReadHours()==hours_lcd_2)
+{
+//-> minutes must be less
+if(ReadMinutes()< minutes_lcd_2) Timer_isOn=1;
+}
+}
+//------------------------------Timer 2-----------------------------------------
+if(ReadHours() > hours_lcd_timer2_start && ReadHours()< hours_lcd_timer2_stop)
+{
+Timer_2_isOn=1;
+}
+//-> seconds compare hours if equal now then compare minutes
+if(ReadHours()== hours_lcd_timer2_start || ReadHours()== hours_lcd_timer2_stop )
+{
+if(ReadHours()==hours_lcd_timer2_start)
+{
+//-> minutes must be bigger
+if(ReadMinutes()>=minutes_lcd_timer2_start) Timer_2_isOn=1;
+}
+if(ReadHours()==hours_lcd_timer2_stop)
+{
+//-> minutes must be less
+if(ReadMinutes()<minutes_lcd_timer2_stop) Timer_2_isOn=1;
+}
+}
 }  // end function
 //**************************************1****************************************
-
 void TurnLoadsOffWhenGridOff()
 {
 
