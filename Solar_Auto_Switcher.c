@@ -92,6 +92,8 @@ unsigned int UpdateScreenTime=0,TimeToExitSetupProgram=0;
 char SystemBatteryMode=0;
 char EnterSetupProgram=0; // variable to detect if mcu in loop of setup program
 unsigned int  ReadBatteryTime=0;
+char RunOnBatteryVoltageMode=0;
+bool UPSMode=0;
 
 //-----------------------------------Functions---------------------------------
 void EEPROM_Load();
@@ -178,11 +180,13 @@ Write_Ds1307(0x06,year);       // 00-99
 void Config()
 {
 GPIO_Init();
+Backlight=1; // turn backlight on
 LCD_Init();
 LCD_CMD(_LCD_CLEAR);
 LCD_CMD(_LCD_CURSOR_OFF);
-Backlight=1; // turn backlight on
-Delay_ms(1000);
+LCD_OUT(1,1,"   SLC V1.2.2   ");
+Delay_ms(2000);
+LCD_CMD(_LCD_CLEAR);
 }
 
 //-----------------------------------LCD Clear----------------------------------
@@ -210,7 +214,7 @@ void Interrupt_INT1 () iv IVT_ADDR_INT1
 {
 AcBuzzerActiveTimes=0; // FOR ACTIVING BUZZER ONCE AGAIN
  //-> functions for shutting down loads if there is no timers and grid is off
-if(AC_Available==1 && Timer_isOn==0  && RunLoadsByBass==0)
+if(AC_Available==1 && Timer_isOn==0  && RunLoadsByBass==0 && RunOnBatteryVoltageMode==0)
 {
 //AcBuzzerActiveTimes=0; // make buzzer va  riable zero to get activated once again
 ///old_timer_1=ReadMinutes();  // time must be updated after grid is off
@@ -219,12 +223,24 @@ Relay_L_Solar=0;
 LCD_Clear(2,7,16); // to clear lcd when grid is not available
 }
 
-if (AC_Available==1 && Timer_2_isOn==0 && RunLoadsByBass==0)  // it must be   Timer_2_isOn==0    but because of error in loading eeprom value
+if (AC_Available==1 && Timer_2_isOn==0 && RunLoadsByBass==0 && RunOnBatteryVoltageMode==0)  // it must be   Timer_2_isOn==0    but because of error in loading eeprom value
 {
 //AcBuzzerActiveTimes=0; // make buzzer va  riable zero to get activated once again
 ///old_timer_2=ReadMinutes();   // time must be updated after grid is off
 SecondsRealTime=0;
 Relay_L_Solar_2=0;
+LCD_Clear(2,7,16); // to clear lcd when grid is not available
+}
+
+ //-> can not put this here because ot will stay turning of loads
+if (AC_Available==1 &&  RunLoadsByBass==0 && RunOnBatteryVoltageMode==1 && UPSMode==1)
+{
+SecondsRealTime=0;
+SecondsRealTimePv_ReConnect_T1=0;
+SecondsRealTimePv_ReConnect_T2=0;
+Relay_L_Solar_2=0;
+Relay_L_Solar=0;
+AcBuzzerActiveTimes=0; // make buzzer va  riable zero to get activated once again
 LCD_Clear(2,7,16); // to clear lcd when grid is not available
 }
 
@@ -255,7 +271,8 @@ Low_Voltage=EEPROM_Read(0x13); // load low voltage
 VoltageProtectionEnable=EEPROM_Read(0x15);
 //Timer_isOn  =EEPROM_Read(0x49);           //there is no need because we make fuction read time in range it will toggle the output
 //Timer_2_isOn =EEPROM_Read(0x50);          //there is no need because we make fuction read time in range it will toggle the output
-
+RunOnBatteryVoltageMode=EEPROM_Read(0x99);
+UPSMode=EEPROM_Read(0x102) ;   // ups mode
 }
 //------------------------------------------------------------------------------
 //-> Saving Float Value to EEPROM
@@ -282,6 +299,8 @@ Delay_ms(50);
 
 //-------------------------------Check if timers time occured-------------------
 void Check_Timers()
+{
+if(RunOnBatteryVoltageMode==0)
 {
 //-> timer start
 matched_timer_1_start=CheckTimeOccuredOn(seconds_lcd_1,minutes_lcd_1,hours_lcd_1);
@@ -372,11 +391,11 @@ Relay_L_Solar_2=0; // relay off
 }
 
 } // end match timer stop
-
+} //end batteryvoltagemode if
 //***************************ByPass System**************************************
 // if voltage ac is good and voltage protection is enabled
   // do not enter the bypass if the voltage is not good because it will be already switched to solar
-if (AC_Available==0 && ByPassState==0 && VoltageProtectorGood==1 && VoltageProtectionEnable==1 )       //bypass enabled
+/*if (AC_Available==0 && ByPassState==0 && VoltageProtectorGood==1 && VoltageProtectionEnable==1 )       //bypass enabled
 {
 ////////////////////////////////////////////////////////////////////////////////
 Delay_ms(300);       // for error to get one seconds approxmiallty
@@ -394,12 +413,12 @@ Relay_L_Solar_2=1;
 }
 
 ToggleBuzzer();
-}
+}*/
 //**********************Voltage Protector***************************************
 /**
 if voltage protector drops up or
 */
-if(AC_Available==0 && VoltageProtectorGood==0 && VoltageProtectionEnable==1)
+/*if(AC_Available==0 && VoltageProtectorGood==0 && VoltageProtectionEnable==1)
 {
 Start_Timer_0_A();         // give some time ac grid to stabilize
 }
@@ -407,7 +426,7 @@ Start_Timer_0_A();         // give some time ac grid to stabilize
 if(AC_Available==1 && Timer_2_isOn == 1 && Timer_isOn == 1)
 {
  LCD_CLEAR(2,7,16); // to clear lcd when grid is not available
-}
+}*/
 //*******************************************************************************
 //-------------------------------Voltage Protector is disabled------------------
 if(AC_Available==0 &&   VoltageProtectionEnable==0 )   // voltage protector is not enabled
@@ -419,7 +438,6 @@ if(SecondsRealTime >= startupTIme_1 && AC_Available==0)
 {
 
 Relay_L_Solar=1;
-
 }
 if(SecondsRealTime >= startupTIme_2 && AC_Available==0)
 {
@@ -447,7 +465,7 @@ LCD_CMD(_LCD_CURSOR_OFF);
  these function is used for reactiving timers when grid available in the same timer is on or off
 */
 //-> if the  ac is shutdown and timer is steel in the range of being on  so reactive timer 1
-if (AC_Available==1 && Timer_isOn==1 && Vin_Battery >= StartLoadsVoltage && RunWithOutBattery==false && TurnOffLoadsByPass==0 )
+if (AC_Available==1 && Timer_isOn==1 && Vin_Battery >= StartLoadsVoltage && RunWithOutBattery==false && TurnOffLoadsByPass==0 && RunOnBatteryVoltageMode ==0 )
 {
 
 SecondsRealTimePv_ReConnect_T1++;
@@ -455,7 +473,7 @@ Delay_ms(200);
 if (  SecondsRealTimePv_ReConnect_T1 > startupTIme_1)     Relay_L_Solar=1;
 
 }
-if (AC_Available==1 && Timer_isOn==1  && RunWithOutBattery==true && TurnOffLoadsByPass==0 )
+if (AC_Available==1 && Timer_isOn==1  && RunWithOutBattery==true && TurnOffLoadsByPass==0 && RunOnBatteryVoltageMode ==0 )
 {
 SecondsRealTimePv_ReConnect_T1++;
 Delay_ms(200);
@@ -464,7 +482,7 @@ if (  SecondsRealTimePv_ReConnect_T1 > startupTIme_1) Relay_L_Solar=1;
 
 }
 //-> if the  ac is shutdown and timer is steel in the range of being on  so reactive timer 2
-if (AC_Available==1 && Timer_2_isOn==1 && Vin_Battery >= StartLoadsVoltage_T2 && RunWithOutBattery==false && TurnOffLoadsByPass==0)     //run with battery
+if (AC_Available==1 && Timer_2_isOn==1 && Vin_Battery >= StartLoadsVoltage_T2 && RunWithOutBattery==false && TurnOffLoadsByPass==0 && RunOnBatteryVoltageMode ==0)     //run with battery
 {
 SecondsRealTimePv_ReConnect_T2++;
 Delay_ms(50);
@@ -472,14 +490,30 @@ if (  SecondsRealTimePv_ReConnect_T2 > startupTIme_2)
 Relay_L_Solar_2=1;
 }
 
-if (AC_Available==1 && Timer_2_isOn==1 &&  RunWithOutBattery==true && TurnOffLoadsByPass==0)            //run without battery
+if (AC_Available==1 && Timer_2_isOn==1 &&  RunWithOutBattery==true && TurnOffLoadsByPass==0 && RunOnBatteryVoltageMode ==0)            //run without battery
 {
 SecondsRealTimePv_ReConnect_T2++;
 Delay_ms(50);
 if (  SecondsRealTimePv_ReConnect_T2 > startupTIme_2)
 Relay_L_Solar_2=1;
 }
+//-------------------------------RunOnBatteryMode-------------------------------
+ if (AC_Available==1  && Vin_Battery >= StartLoadsVoltage && RunWithOutBattery==false && TurnOffLoadsByPass==0 && RunOnBatteryVoltageMode ==1 )
+{
 
+SecondsRealTimePv_ReConnect_T1++;
+Delay_ms(200);
+if (  SecondsRealTimePv_ReConnect_T1 > startupTIme_1)     Relay_L_Solar=1;
+}
+
+if (AC_Available==1 && Vin_Battery >= StartLoadsVoltage_T2 && RunWithOutBattery==false && TurnOffLoadsByPass==0 && RunOnBatteryVoltageMode ==1)     //run with battery
+{
+SecondsRealTimePv_ReConnect_T2++;
+Delay_ms(50);
+if (  SecondsRealTimePv_ReConnect_T2 > startupTIme_2)
+Relay_L_Solar_2=1;
+}
+//------------------------------Turn Off Loads----------------------------------
 //--Turn Load off when battery Voltage  is Low and AC Not available and Bypass is enabled
 if (Vin_Battery<Mini_Battery_Voltage && AC_Available==1  && RunWithOutBattery==false)
 {
@@ -493,17 +527,9 @@ if (Vin_Battery<Mini_Battery_Voltage_T2 && AC_Available==1  && RunWithOutBattery
 SecondsRealTimePv_ReConnect_T2=0;
 Start_Timer_0_A();         // give some time for battery voltage
 }
-
 }// end of check timers
 //******************************************************************************
-//-------------------------------Get Voltage At Moment--------------------------
-void GetVoltageNow()
-{
-v=ReadAC();
-v=v*5.0/1024.0; // 5000 mah adc voltage reference
-v=255.5*v;    // 2.2K/560K+2.2K
-v/=sqrt(2);
-}
+
 //------------------------------Toggle Buzzer-----------------------------------
 void ToggleBuzzer()
 {
@@ -1092,96 +1118,6 @@ if (set_ds1307_year<0) set_ds1307_year=0;
 Write_Date(Dec2Bcd(set_ds1307_day),Dec2Bcd(set_ds1307_month),Dec2Bcd(set_ds1307_year)); // write Date to DS1307
 } //  end while set
 }  // end setTimeAndData
-/*//--------------------------------Set Minutes Ds1307----------------------------
-void SetDS1307Minutes_Program()
-{
-LCD_Clear(1,1,16);
-LCD_OUT(1,1,"Set Time[M] [10]");
-Delay_ms(500);
-while (Set==1)
-{
-ByteToStr(set_ds1307_hours,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(set_ds1307_minutes,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
-LCD_Chr_Cp('-');
-ByteToStr(set_ds1307_seconds,txt);
-LCD_OUT(2,12,"S:");
-LCD_Out(2,13,txt);
-if (Exit==1)   break;     //break out of the while loop
-while (Increment==1 || Decrement==1)
-{
-if (Increment==1)
-{
-delay_ms(100);
-set_ds1307_minutes++;
-}
-
-if (Decrement==1)
-{
-delay_ms(100);
-set_ds1307_minutes--;
-}
-if(set_ds1307_minutes>59) set_ds1307_minutes=0;
-if(set_ds1307_minutes<0) set_ds1307_minutes=0;
-} // end while decrement or increment
-} // end first while
-}*/
-/*//--------------------------------Set DS1307 Seconds----------------------------
-void SetDS1307Seconds_Program()
-{
-LCD_Clear(1,1,16);
-LCD_OUT(1,1,"Set Time[S] [11]");
-Delay_ms(500);
-while (Set==1)
-{
-ByteToStr(set_ds1307_hours,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(set_ds1307_minutes,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
-LCD_Chr_Cp('-');
-ByteToStr(set_ds1307_seconds,txt);
-LCD_OUT(2,12,"S:");
-LCD_Out(2,13,txt);
-if (Exit==1)   break;     //break out of the while loop
-while(Increment==1 || Decrement==1)
-{
-ByteToStr(set_ds1307_hours,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
-LCD_Chr_Cp('-');
-ByteToStr(set_ds1307_minutes,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
-LCD_Chr_Cp('-');
-ByteToStr(set_ds1307_seconds,txt);
-LCD_OUT(2,12,"S:");
-LCD_Out(2,13,txt);
-if (Increment==1)
-{
-delay_ms(200);
-set_ds1307_seconds++;
-
-}
-if (Decrement==1)
-{
-delay_ms(200);
-set_ds1307_seconds--;
-}
-if (set_ds1307_seconds>59) set_ds1307_seconds=0;
-if (set_ds1307_seconds<0) set_ds1307_seconds=0;
-//-> Send Now time to ds1307 to be set
-//-> to force user to change the time when the last seconds options is changing it must be saved
-Write_Time(Dec2Bcd(set_ds1307_seconds),Dec2Bcd(set_ds1307_minutes),Dec2Bcd(set_ds1307_hours)); // write time to DS1307
-} // end while decrement or increment
-} // end first while
-}*/
 
 //----------------------SetLowBatteryVoltage------------------------------------
 void SetLowBatteryVoltage()
@@ -1469,7 +1405,14 @@ LCD_Clear(2,1,16);
 //----------------------------Screen 1------------------------------------------
 void Screen_1()
 {
+if (RunOnBatteryVoltageMode==0)
+{
 Read_Time();
+}
+else
+{
+LCD_OUT(1,1,"Voltage Mode");
+}
 Read_Battery();
 CalculateAC();
 }
@@ -1502,6 +1445,10 @@ Vin_Battery= sum/10.0 ;
 LCD_OUT(2,1,"V=");
 sprintf(txt,"%4.1f",Vin_Battery);     // re format vin_battery to have 2 decimals
 LCD_OUT(2,3,txt);
+if(AC_Available==1)
+{
+LCD_CLEAR(2,7,16);
+}
 
 }
 
@@ -1556,8 +1503,9 @@ LCD_OUT(2,9,buf);
 }*/
 if (AC_Available== 0 && VoltageProtectionEnable==0) // in this if voltage protector is turned of no need for voltage read
 {
-LCD_out(2,8,"- Grid");
+LCD_out(2,7," - Grid   ");
 }
+
 //VoltageProtector(v);
 }
 //----------------------------------DisplayTimerActivation----------------------
@@ -1621,7 +1569,7 @@ if(Vin_Battery<Mini_Battery_Voltage_T2 && AC_Available==1)
 SecondsRealTime=0;
 Delay_ms(500);
 Relay_L_Solar_2=0;
-LCD_CLEAR(2,7,16);
+//LCD_CLEAR(2,7,16);
 }
 Timer_Counter_4=0;
 Stop_Timer_0();
@@ -1691,6 +1639,8 @@ EEPROM_Write(0x18,9);  // writing start hours
 EEPROM_Write(0x19,0);    // writing  start minutes
 EEPROM_Write(0x20,17);    // writing off hours
 EEPROM_Write(0x21,0);    // writing off minutes
+EEPROM_Write(0x99,0);    // run on battery voltage mode
+EEPROM_Write(0x102,1); // ups mode
 //**********************************************
 StoreBytesIntoEEprom(0x30,(unsigned short *)&Mini_Battery_Voltage,4);   // save float number to eeprom
 StoreBytesIntoEEprom(0x40,(unsigned short *)&StartLoadsVoltage,4);
@@ -1699,52 +1649,26 @@ StoreBytesIntoEEprom(0x47,(unsigned short *)&startupTIme_2,2);
 StoreBytesIntoEEprom(0x51,(unsigned short *)&Mini_Battery_Voltage_T2,4);
 StoreBytesIntoEEprom(0x55,(unsigned short *)&StartLoadsVoltage_T2,4);
 }
-/*if (period==0) // winter timer
-{
-Mini_Battery_Voltage=24.5,
-StartLoadsVoltage=26.5,
-startupTIme_1 =180,
-startupTIme_2=240,
-Mini_Battery_Voltage_T2=25.5,
-StartLoadsVoltage_T2=27.5;
-//*****************timer 1****************
-EEPROM_Write(0x00,9);  // writing start hours
-EEPROM_Write(0x01,0);    // writing  start minutes
-EEPROM_Write(0x03,16);    // writing off hours
-EEPROM_Write(0x04,0);    // writing off minutes
-//****************timer 2********************
-EEPROM_Write(0x18,10);  // writing start hours
-EEPROM_Write(0x19,0);    // writing  start minutes
-EEPROM_Write(0x20,16);    // writing off hours
-EEPROM_Write(0x21,0);    // writing off minutes
-//**********************************************
-StoreBytesIntoEEprom(0x30,(unsigned short *)&Mini_Battery_Voltage,4);   // save float number to eeprom
-StoreBytesIntoEEprom(0x40,(unsigned short *)&StartLoadsVoltage,4);
-StoreBytesIntoEEprom(0x45,(unsigned short *)&startupTIme_1,2);
-StoreBytesIntoEEprom(0x47,(unsigned short *)&startupTIme_2,2);
-StoreBytesIntoEEprom(0x51,(unsigned short *)&Mini_Battery_Voltage_T2,4);
-StoreBytesIntoEEprom(0x55,(unsigned short *)&StartLoadsVoltage_T2,4);
-}*/
 //global variables
 EEPROM_Write(0x12,260); //  high voltage Grid
 EEPROM_Write(0x13,170); // load low voltage
-//EEPROM_Write(0x49,0); //  timer1_ison
-//EEPROM_Write(0x50,0); // timer2_is on
 EEPROM_Write(0x15,0); // voltage protector not enabled as default
 }
 //---------------This function is for making timers run now---------------------
 void RunTimersNowCheck()
 {
-
 if(Exit==1 && Increment==0 && Decrement==0 && Set==1)
 {
 Backlight=1;
 }
-
+//-----------------------------Bypass Mode -------------------------------------
 if(Increment==1 && Exit==0)
 {
 Backlight=1;
-Delay_ms(2000);
+Delay_ms(3000);
+if (Increment==1 && Exit==0)
+{
+Delay_ms(4000);
 if (Increment==1 && Exit==0)
 {
 RunLoadsByBass++;
@@ -1755,6 +1679,7 @@ Delay_ms(2000);
 Relay_L_Solar_2=1;
 }
 LCD_OUT(1,15,"B");
+}
 }
 }
 //---------------------------------Reset to Summer time-------------------------
@@ -1773,44 +1698,30 @@ Delay_ms(1000);
 LCD_CLEAR(2,1,16);
 }
 }
-/*if (Increment==0 && Exit==1 && Decrement==1)      // first
+//-----------------RunOnBatteryVoltageMode--------------------------------------
+if (Increment==0 && Exit==1 && Decrement==1)      // first
 {
 Delay_ms(2000);
 if ( Increment==0 && Exit==1 && Decrement==1)
 {
-Delay_ms(5000);
-EEPROM_FactorySettings(0);        // winter time
-Delay_ms(100);
-EEPROM_Load();    // read the new values from epprom
-LCD_OUT(2,1,"Reset Winter    ");
+//-> activate run on battery voltage
+//RunOnBatteryVoltageMode=~RunOnBatteryVoltageMode;
+if(RunOnBatteryVoltageMode == 0 ) RunOnBatteryVoltageMode=1 ; else if (RunOnBatteryVoltageMode==1 ) RunOnBatteryVoltageMode=0;
+if (RunOnBatteryVoltageMode==0 ) LCD_OUT(2,1,"Timer Mode");
+if (RunOnBatteryVoltageMode==1)  LCD_OUT(2,1,"Voltage Mode");
+EEPROM_Write(0x99,RunOnBatteryVoltageMode);
 Delay_ms(1000);
-LCD_CLEAR(2,1,16);
-}
-}*/
-///-----------------------------ShutDown Loads-----------------------------------
-/*if (Decrement==1 )      // first
-{
-Delay_ms(1000);
-if ( Decrement==1 )
-{
-Delay_ms(2000);
-if (Decrement==1  )
-{
-Timer_isOn=0;
-Timer_2_isOn=0;
-Relay_L_Solar=0;
-Relay_L_Solar_2=0;
-SecondsRealTimePv_ReConnect_T1=0;  // to make count starts again
-SecondsRealTimePv_ReConnect_T2=0; // to make count starts aain
-EEPROM_Write(0x49,0);  // save to epprom to shutdown
-EEPROM_Write(0x50,0);  // save to epprom to shutdown
+LCD_CMD(_LCD_CLEAR);
 }
 }
-}*/
+
 if(Decrement==1 && Exit==0)
 {
 Backlight=1;
-Delay_ms(2000);
+Delay_ms(3000);
+if (Decrement==1 && Exit==0)
+{
+Delay_ms(4000);
 if (Decrement==1 && Exit==0)
 {
 TurnOffLoadsByPass=1;
@@ -1823,6 +1734,31 @@ LCD_OUT(1,16," ");
 }
 }
 
+//------------------------------UPS Mode --------------------------------
+if (Set==0 && Decrement==0 && Increment==0  && Exit==1)
+{
+Backlight=1;
+Delay_ms(2000);
+if (Set==0 && Decrement==0 && Increment==0  && Exit==1)
+{
+if (UPSMode==0)
+{
+UPSMode=1;
+EEPROM_Write(0x102,UPSMode);
+LCD_OUT(2,1,"UPS ON");
+Delay_ms(1000);
+}
+else
+{
+UPSMode=0;
+EEPROM_Write(0x102,UPSMode);
+LCD_OUT(2,1,"UPS OFF");
+Delay_ms(1000);
+}
+LCD_CLEAR(2,1,16);
+} // end
+} // end of button
+}  // end function
 //------------------------------------------------------------------------------
 
 void CheckForSet()
@@ -1846,6 +1782,8 @@ RunWithOutBattery=false;
 }
 //-------------------Check for timer activation inside range--------------------
 void CheckForTimerActivationInRange()
+{
+if (RunOnBatteryVoltageMode==0)
 {
 /*//-a to turn on loadsinside range
 if (ReadHours() >= hours_lcd_1 && ReadMinutes() >= minutes_lcd_1 && ReadHours() < hours_lcd_2  )
@@ -1917,12 +1855,13 @@ if(ReadHours()==hours_lcd_timer2_stop)
 if(ReadMinutes()<minutes_lcd_timer2_stop) Timer_2_isOn=1;
 }
 }
+} // run on battery voltage mode
 }  // end function
 //**************************************1****************************************
 void TurnLoadsOffWhenGridOff()
 {
 
-if(AC_Available==1 && Timer_isOn==0 && RunLoadsByBass==0 )
+if(AC_Available==1 && Timer_isOn==0 && RunLoadsByBass==0  && RunOnBatteryVoltageMode==0)
 {
 SecondsRealTime=0;
 Relay_L_Solar=0;
@@ -1930,7 +1869,7 @@ AcBuzzerActiveTimes=0; // make buzzer va  riable zero to get activated once agai
 LCD_Clear(2,7,16); // to clear lcd when grid is not available
 }
 
-if (AC_Available==1 && Timer_2_isOn==0 && RunLoadsByBass==0)  // it must be   Timer_2_isOn==0    but because of error in loading eeprom value
+if (AC_Available==1 && Timer_2_isOn==0 && RunLoadsByBass==0 && RunOnBatteryVoltageMode==0)  // it must be   Timer_2_isOn==0    but because of error in loading eeprom value
 {
 SecondsRealTime=0;
 Relay_L_Solar_2=0;
@@ -1966,6 +1905,8 @@ EEPROM_Write(0x15,1);
 //------------------------------------------------------------------------------
 void CheckForTimerActivationOutRange()
 {
+/*if(RunOnBatteryVoltageMode==0)
+{
  //-a turn off loads out of time range  range
 if(ReadHours() >= hours_lcd_1 && ReadMinutes() >= minutes_lcd_1 && ReadHours() >= hours_lcd_2 && ReadMinutes()>=minutes_lcd_2 )
 {
@@ -1976,8 +1917,67 @@ if (ReadHours() >= hours_lcd_timer2_start && ReadMinutes() >= minutes_lcd_timer2
 {
 Timer_2_isOn=0;
 }
+} // run on battery voltage mode*/
+
+if (RunOnBatteryVoltageMode==0)
+{
+//------------------------------First Timer-------------------------------------
+if (ReadHours() < hours_lcd_1  && ReadHours() < hours_lcd_2 )
+{
+Timer_isOn=0;
 }
 
+if (ReadHours() > hours_lcd_1  && ReadHours() > hours_lcd_2 )
+{
+Timer_isOn=0;
+}
+
+
+if (ReadHours()==hours_lcd_1)
+{
+if(ReadMinutes() < minutes_lcd_1)
+{
+Timer_isOn=0;
+}
+}
+//-> check for hours
+if (ReadHours()==hours_lcd_2)
+{
+if(ReadMinutes() > minutes_lcd_2)
+{
+Timer_isOn=0;
+}
+}
+//----------------------------Second Timer--------------------------------------
+if (ReadHours() < hours_lcd_timer2_start  && ReadHours() < hours_lcd_timer2_stop )
+{
+Timer_2_isOn=0;
+}
+
+if (ReadHours() > hours_lcd_timer2_start  && ReadHours() > hours_lcd_timer2_stop )
+{
+Timer_2_isOn=0;
+}
+
+
+if (ReadHours()==hours_lcd_timer2_start)
+{
+if(ReadMinutes() < minutes_lcd_timer2_start)
+{
+Timer_2_isOn=0;
+}
+}
+//-> check for hours
+if (ReadHours()==hours_lcd_timer2_stop)
+{
+if(ReadMinutes() > minutes_lcd_timer2_stop)
+{
+Timer_2_isOn=0;
+}
+}
+//--------------------------------End of Second Timer
+} // end of run on battery voltage
+}
 //------------------------------------------------------------------------------
 void UpdateScreenTimerInit_Timer_2()
 {

@@ -192,10 +192,34 @@ void Read_time()
   Lcd_Chr_cp(reg_1 + 0x30);
   delay_ms(100);
   }
+  //------------------------------TWI Call Back---------------------------------
+  // define callback function
+void TWI_TimeoutCallback(char errorCode) {
+
+   if (errorCode == _TWI_TIMEOUT_RD ) {
+     // do something if timeout is caused during read
+     TWI_Close();
+
+   }
+
+   if (errorCode == _TWI_TIMEOUT_WR) {
+     // do something if timeout is caused during write
+     TWI_Close();
+
+   }
+
+   if (errorCode == _TWI_TIMEOUT_START) {
+     // do something if timeout is caused during start
+     TWI_Close();
+
+   }
+}
+  
   //----------------------------------------TWI Config--------------------------
   void TWI_Config()
   {
    TWI_Init(50000);
+   TWI_SetTimeoutCallback(1000, TWI_TimeoutCallback);
   }
   //-----------------------------------Check Time-------------------------------
   char CheckTimeOccuredOn(char seconds_required, char minutes_required,char hours_required)
