@@ -184,7 +184,7 @@ Backlight=1; // turn backlight on
 LCD_Init();
 LCD_CMD(_LCD_CLEAR);
 LCD_CMD(_LCD_CURSOR_OFF);
-LCD_OUT(1,1,"   SLC V1.2.2   ");
+LCD_OUT(1,1,"   SLC V1.2.3   ");
 Delay_ms(2000);
 LCD_CMD(_LCD_CLEAR);
 }
@@ -353,7 +353,7 @@ Relay_L_Solar=0; // relay off
 if (matched_timer_2_start==1)
 {
 Timer_2_isOn=1;
-TurnOffLoadsByPass=0;
+TurnOffLoadsByPass=0;     // this variable just for if user shutdown loads and don't want to reactivated so it will be zeroed until next timer
 ///EEPROM_write(0x50,1);        //- save it to eeprom if power is cut
 //-> when grid is available and timer is on after grid so access the condition to active timer after grid is off
 if (AC_Available==1 && Timer_Enable==1  && Vin_Battery >= StartLoadsVoltage_T2 && RunWithOutBattery==false)
@@ -392,43 +392,9 @@ Relay_L_Solar_2=0; // relay off
 
 } // end match timer stop
 } //end batteryvoltagemode if
-//***************************ByPass System**************************************
-// if voltage ac is good and voltage protection is enabled
-  // do not enter the bypass if the voltage is not good because it will be already switched to solar
-/*if (AC_Available==0 && ByPassState==0 && VoltageProtectorGood==1 && VoltageProtectionEnable==1 )       //bypass enabled
-{
-////////////////////////////////////////////////////////////////////////////////
-Delay_ms(300);       // for error to get one seconds approxmiallty
-SecondsRealTime++;
 
-if(SecondsRealTime >= startupTIme_1 && AC_Available==0)
-{
-
-Relay_L_Solar=1;
-//ToggleBuzzer();
-}
-if(SecondsRealTime >= startupTIme_2 && AC_Available==0)
-{
-Relay_L_Solar_2=1;
-}
-
-ToggleBuzzer();
-}*/
-//**********************Voltage Protector***************************************
-/**
-if voltage protector drops up or
-*/
-/*if(AC_Available==0 && VoltageProtectorGood==0 && VoltageProtectionEnable==1)
-{
-Start_Timer_0_A();         // give some time ac grid to stabilize
-}
-
-if(AC_Available==1 && Timer_2_isOn == 1 && Timer_isOn == 1)
-{
- LCD_CLEAR(2,7,16); // to clear lcd when grid is not available
-}*/
 //*******************************************************************************
-//-------------------------------Voltage Protector is disabled------------------
+//-------------------------Bypass System----------------------------------------
 if(AC_Available==0 &&   VoltageProtectionEnable==0 )   // voltage protector is not enabled
 {
 Delay_ms(300);       // for error to get one seconds approxmiallty
@@ -444,22 +410,8 @@ if(SecondsRealTime >= startupTIme_2 && AC_Available==0)
 
 Relay_L_Solar_2=1;
 }
-ToggleBuzzer();
-} // end function of voltage protector
-//----------------------------------BYpass Screen Fix---------------------------
-/*if (AC_Available==0 && SecondsRealTime==startupTIme_1)
-{
-LCD_Init();
-LCD_CMD(_LCD_CLEAR);
-LCD_CMD(_LCD_CURSOR_OFF);
-}*/
-/*if (AC_Available==0 && SecondsRealTime==startupTIme_2)
-{
-LCD_Init();
-LCD_CMD(_LCD_CLEAR);
-LCD_CMD(_LCD_CURSOR_OFF);
-}*/
 
+} // end function of voltage protector
 //------------------------Functions for reactiving timers------------------------
 /*
  these function is used for reactiving timers when grid available in the same timer is on or off
@@ -515,14 +467,14 @@ Relay_L_Solar_2=1;
 }
 //------------------------------Turn Off Loads----------------------------------
 //--Turn Load off when battery Voltage  is Low and AC Not available and Bypass is enabled
-if (Vin_Battery<Mini_Battery_Voltage && AC_Available==1  && RunWithOutBattery==false)
+if (Vin_Battery<Mini_Battery_Voltage && AC_Available==1  && RunWithOutBattery==false )
 {
 SecondsRealTimePv_ReConnect_T1=0;
 Start_Timer_0_A();         // give some time for battery voltage
 }
 
 //--Turn Load off when battery Voltage  is Low and AC Not available and Bypass is enabled
-if (Vin_Battery<Mini_Battery_Voltage_T2 && AC_Available==1  && RunWithOutBattery==false)
+if (Vin_Battery<Mini_Battery_Voltage_T2 && AC_Available==1  && RunWithOutBattery==false )
 {
 SecondsRealTimePv_ReConnect_T2=0;
 Start_Timer_0_A();         // give some time for battery voltage
@@ -530,17 +482,6 @@ Start_Timer_0_A();         // give some time for battery voltage
 }// end of check timers
 //******************************************************************************
 
-//------------------------------Toggle Buzzer-----------------------------------
-void ToggleBuzzer()
-{
-if (AcBuzzerActiveTimes==0)
-{
-AcBuzzerActiveTimes =1 ;
-Buzzer=1;
-Delay_ms(1000);
-Buzzer=0;
-}
-}
 //---------------------------------Interrupt Routine----------------------------
 /*void Interrupt_Routine () iv IVT_ADDR_INT0
 {
@@ -1405,6 +1346,7 @@ LCD_Clear(2,1,16);
 //----------------------------Screen 1------------------------------------------
 void Screen_1()
 {
+if (RunLoadsByBass==0)   LCD_CLEAR(1,14,16);  else  LCD_OUT(1,16,"B");
 if (RunOnBatteryVoltageMode==0)
 {
 Read_Time();
@@ -1550,7 +1492,7 @@ Timer_Counter_For_Grid_Turn_Off++;
 if (Timer_Counter_3==500)              // more than 10 seconds
 {
 
-if(Vin_Battery<Mini_Battery_Voltage && AC_Available==1)
+if(Vin_Battery<Mini_Battery_Voltage && AC_Available==1 && RunLoadsByBass==0 )
 {
 SecondsRealTime=0;
 Relay_L_Solar=0;
@@ -1564,7 +1506,7 @@ Stop_Timer_0();
 if (Timer_Counter_4==500)              // more than 10 seconds
 {
 
-if(Vin_Battery<Mini_Battery_Voltage_T2 && AC_Available==1)
+if(Vin_Battery<Mini_Battery_Voltage_T2 && AC_Available==1  && RunLoadsByBass==0)
 {
 SecondsRealTime=0;
 Delay_ms(500);
@@ -1678,7 +1620,7 @@ if (RunLoadsByBass>=2 )
 Delay_ms(2000);
 Relay_L_Solar_2=1;
 }
-LCD_OUT(1,15,"B");
+
 }
 }
 }
@@ -2086,14 +2028,13 @@ UpdateScreenTimerInit_Timer_2();   // to update screen and turn off light
 while(1)
 {
 CheckForSet();
+RunTimersNowCheck();
+AutoRunWithOutBatteryProtection(); // to auto select run with battery protection or not
+CheckSystemBatteryMode();
 WDT_Enable();
 WDT_Prescaler_Change();
-CheckSystemBatteryMode();
 CheckForTimerActivationInRange();
 CheckForTimerActivationOutRange();
-AutoRunWithOutBatteryProtection(); // to auto select run with battery protection or not
-RunTimersNowCheck();
-//CheckForVoltageProtection();
 Screen_1();
 Check_Timers();
 TurnLoadsOffWhenGridOff();      // sometine when grid comes fast and cut it will not make interrupt so this second check for loads off
@@ -2101,5 +2042,5 @@ Delay_ms(50);
 WDT_Disable();
 } // end while
 }   // end main
-//-> Eng. Riyad Al-Ali 24-8-2022 V1.0
-//-> updated on 21-12-2022
+//-> Eng. Riyad Al-Ali 24-8-2022 V1.2.3
+//-> updated on 8-07-2023
