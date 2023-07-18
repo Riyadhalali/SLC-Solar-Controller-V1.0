@@ -93,7 +93,8 @@ char SystemBatteryMode=0;
 char EnterSetupProgram=0; // variable to detect if mcu in loop of setup program
 unsigned int  ReadBatteryTime=0;
 char RunOnBatteryVoltageMode=0;
-bool UPSMode=0;
+bool UPSMode=0;       // i made ups mode and upo mode in same variable
+char LoadsAlreadySwitchedOFF=0;
 
 //-----------------------------------Functions---------------------------------
 void EEPROM_Load();
@@ -184,9 +185,9 @@ Backlight=1; // turn backlight on
 LCD_Init();
 LCD_CMD(_LCD_CLEAR);
 LCD_CMD(_LCD_CURSOR_OFF);
-LCD_OUT(1,1,"   SLC V1.2.3   ");
-Delay_ms(2000);
-LCD_CMD(_LCD_CLEAR);
+LCD_OUT(1,1,"   SLC V1.2.4   ");
+Delay_ms(500);
+///LCD_CMD(_LCD_CLEAR);
 }
 
 //-----------------------------------LCD Clear----------------------------------
@@ -232,9 +233,10 @@ Relay_L_Solar_2=0;
 LCD_Clear(2,7,16); // to clear lcd when grid is not available
 }
 
- //-> can not put this here because ot will stay turning of loads
-if (AC_Available==1 &&  RunLoadsByBass==0 && RunOnBatteryVoltageMode==1 && UPSMode==1)
+
+if (AC_Available==1 &&  RunLoadsByBass==0 && UPSMode==1 && LoadsAlreadySwitchedOFF==1)
 {
+LoadsAlreadySwitchedOFF=0;
 SecondsRealTime=0;
 SecondsRealTimePv_ReConnect_T1=0;
 SecondsRealTimePv_ReConnect_T2=0;
@@ -243,7 +245,6 @@ Relay_L_Solar=0;
 AcBuzzerActiveTimes=0; // make buzzer va  riable zero to get activated once again
 LCD_Clear(2,7,16); // to clear lcd when grid is not available
 }
-
 LCD_CMD(_LCD_CLEAR);
 INTF1_bit=1;     //clear  flag
 }
@@ -395,7 +396,7 @@ Relay_L_Solar_2=0; // relay off
 
 //*******************************************************************************
 //-------------------------Bypass System----------------------------------------
-if(AC_Available==0 &&   VoltageProtectionEnable==0 )   // voltage protector is not enabled
+if(AC_Available==0 &&   VoltageProtectionEnable==0 && UPSMode==0 )   // voltage protector is not enabled
 {
 Delay_ms(300);       // for error to get one seconds approxmiallty
 SecondsRealTime++;
@@ -408,6 +409,29 @@ Relay_L_Solar=1;
 if(SecondsRealTime >= startupTIme_2 && AC_Available==0)
 {
 
+Relay_L_Solar_2=1;
+}
+
+} // end function of voltage protector
+
+//-------------------------Bypass Mode Upo Mode---------------------------------
+ if(AC_Available==0 && UPSMode==1 )   // voltage protector is not enabled
+{
+Delay_ms(300);       // for error to get one seconds approxmiallty
+SecondsRealTime++;
+
+if( AC_Available==0 && LoadsAlreadySwitchedOFF==0)
+{
+LoadsAlreadySwitchedOFF=1;
+Relay_L_Solar=0;
+Relay_L_Solar_2=0;
+}
+if(SecondsRealTime >= startupTIme_1 && AC_Available==0 && LoadsAlreadySwitchedOFF==1 )
+{
+Relay_L_Solar=1;
+}
+if(SecondsRealTime >= startupTIme_2 && AC_Available==0 && LoadsAlreadySwitchedOFF==1 )
+{
 Relay_L_Solar_2=1;
 }
 
@@ -497,7 +521,7 @@ INTF0_bit=1;     //clear  flag
 //@ Note: Ente this program if user pressed the button ten seconds
 void SetUpProgram()
 {
-Delay_ms(1000);
+//Delay_ms(500);
 if (Set==0 && Exit==0)
 {
 EnterSetupProgram=1;
@@ -539,16 +563,16 @@ SREG_I_bit=1;      //reactivate the lcd _inut timer
 void SetTimerOn_1()
 {
 LCD_Clear(1,1,16);
-LCD_OUT(1,1,"T1 On: [1]");
+//LCD_OUT(1,1,"T1 On: [1]");
 Delay_ms(100);
 LCD_Clear(2,1,16);
 while (Set==1 )
 {
-
 ByteToStr(minutes_lcd_1,txt);
-LCD_OUT(2,6,"M:");
-LCD_OUT(2,1,"H:");
-LCD_Out(2,7,txt);
+LCD_OUT(1,12,"M:");
+LCD_OUT(1,1,"[1]  H:");
+LCD_Out(1,13,txt);
+//LCD_Clear(1,11,12);
 //break out while loop and interupt
 if (Exit==1 )
 {
@@ -581,7 +605,7 @@ Delay_ms(500);     //read time for state
 while (Set==1 )
 {
 ByteToStr(hours_lcd_1,txt);
-LCD_Out(2,2,txt);
+LCD_Out(1,7,txt);
 /*ByteToStr(minutes_lcd_1,txt);
 LCD_OUT(2,6,"M:");
 LCD_Out(2,7,txt);*/
@@ -619,16 +643,16 @@ EEPROM_Write(0x01,minutes_lcd_1); // save minutes 1 timer tp eeprom
 void SetTimerOff_1()
 {
 LCD_Clear(1,1,16);
-LCD_OUT(1,1,"T1 Off: [2]");
+//LCD_OUT(1,1,"T1 Off: [2]");
 LCD_Clear(2,1,16);
 Delay_ms(500);
 while (Set==1 )
 {
 
 ByteToStr(minutes_lcd_2,txt);
-LCD_OUT(2,6,"M:");
-LCD_OUT(2,1,"H:");
-LCD_Out(2,7,txt);
+LCD_OUT(1,12,"M:");
+LCD_OUT(1,1,"[2]  H:");
+LCD_Out(1,13,txt);
 if (Exit==1  )
 {
 //LCD_Clear(2,1,16);
@@ -661,7 +685,7 @@ while (Set==1)
 {
 ByteToStr(hours_lcd_2,txt);
 
-LCD_Out(2,2,txt);
+LCD_Out(1,7,txt);
 /*ByteToStr(minutes_lcd_2,txt);
 LCD_OUT(2,6,"M:");
 LCD_Out(2,7,txt);*/
@@ -698,7 +722,7 @@ EEPROM_Write(0x04,minutes_lcd_2); // save minutes off timer_1 to eeprom
 void SetTimerOn_2()
 {
 LCD_Clear(1,1,16);
-LCD_OUT(1,1,"T2 On: [3]");
+//LCD_OUT(1,1,"T2 On: [3]");
 Delay_ms(100);
 LCD_Clear(2,1,16);
 while (Set==1 )
@@ -708,9 +732,9 @@ LCD_OUT(2,1,"H:");
 LCD_Out(2,2,txt);
 LCD_Chr_Cp('-');*/
 ByteToStr(minutes_lcd_timer2_start,txt);
-LCD_OUT(2,6,"M:");
-LCD_OUT(2,1,"H:");
-LCD_Out(2,7,txt);
+LCD_OUT(1,12,"M:");
+LCD_OUT(1,1,"[3]  H:");
+LCD_Out(1,13,txt);
 //break out while loop and interupt
 if (Exit==1 )
 {
@@ -745,7 +769,7 @@ while (Set==1  )
 {
 ByteToStr(hours_lcd_timer2_start,txt);
 
-LCD_Out(2,2,txt);
+LCD_Out(1,7,txt);
 //LCD_Chr_Cp('-');
 /*ByteToStr(minutes_lcd_timer2_start,txt);
 LCD_OUT(2,6,"M:");
@@ -784,7 +808,7 @@ EEPROM_Write(0x19,minutes_lcd_timer2_start); // save minutes 1 timer tp eeprom
 void SetTimerOff_2()
 {
 LCD_Clear(1,1,16);
-LCD_OUT(1,1,"T2 Off: [4]");
+//LCD_OUT(1,1,"T2 Off: [4]");
 LCD_Clear(2,1,16);
 Delay_ms(500);
 while (Set==1)
@@ -794,9 +818,9 @@ LCD_OUT(2,1,"H:");
 LCD_Out(2,2,txt);
 LCD_Chr_Cp('-');*/
 ByteToStr(minutes_lcd_timer2_stop,txt);
-LCD_OUT(2,6,"M:");
-LCD_OUT(2,1,"H:");
-LCD_Out(2,7,txt);
+LCD_OUT(1,12,"M:");
+LCD_OUT(1,1,"[4]  H:");
+LCD_Out(1,13,txt);
 if (Exit==1 )   break;     //break out of the while loop
 //-> to make sure that the value will never be changed until the user press increment or decrement
 while (Increment==1 || Decrement==1)
@@ -825,7 +849,7 @@ while (Set==1 )
 {
 ByteToStr(hours_lcd_timer2_stop,txt);
 
-LCD_Out(2,2,txt);
+LCD_Out(1,7,txt);
 //LCD_Chr_Cp('-');
 /*ByteToStr(minutes_lcd_timer2_stop,txt);
 LCD_OUT(2,6,"M:");
@@ -865,7 +889,8 @@ EEPROM_Write(0x21,minutes_lcd_timer2_stop); // save minutes off timer_1 to eepro
 void SetDS1307_Time()
 {
 LCD_Clear(1,1,16);
-LCD_OUT(1,1,"Set Time [8]");
+LCD_CLear(2,1,16); // clear the lcd two row
+//LCD_OUT(1,1,"Set Time [8]");
 Delay_ms(500);
 set_ds1307_minutes=ReadMinutes();      // to read time now
 set_ds1307_hours=ReadHours();          // to read time now
@@ -873,8 +898,8 @@ set_ds1307_hours=ReadHours();          // to read time now
 while (Set==1 )
 {
 ByteToStr(set_ds1307_hours,txt);
-LCD_OUT(2,1,"H:");
-LCD_Out(2,2,txt);
+LCD_OUT(1,1,"H:");
+LCD_Out(1,2,txt);
 ///////////////////////////////////////
 /*ByteToStr(set_ds1307_minutes,txt);
 LCD_OUT(2,6,"M:");
@@ -903,7 +928,7 @@ if (set_ds1307_hours<0) set_ds1307_hours=0;
 } // end first while
 //******************************�Minutes Program********************************
 Delay_ms(500);
-LCD_Clear(1,1,16);
+//LCD_Clear(1,1,16);
 //LCD_OUT(1,1,"Set Time[M] [10]");
 
 while (Set==1  )
@@ -914,8 +939,8 @@ LCD_Out(2,7,txt);
 //LCD_Chr_Cp('-');*/
 
 ByteToStr(set_ds1307_minutes,txt);
-LCD_OUT(2,6,"M:");
-LCD_Out(2,7,txt);
+LCD_OUT(1,6,"M:");
+LCD_Out(1,7,txt);
 if (Exit==1 )   break;     //break out of the while loop
 while (Increment==1 || Decrement==1)
 {
@@ -936,7 +961,7 @@ if(set_ds1307_minutes<0) set_ds1307_minutes=0;
 } // end first while
 //*******************************Seconds****************************************
 Delay_ms(500);
-LCD_Clear(1,1,16);
+//LCD_Clear(1,1,16);
 //LCD_OUT(1,1,"Set Time[S] [11]");
 
 while (Set==1 )
@@ -945,8 +970,8 @@ while (Set==1 )
 //LCD_OUT(2,12,"S:");
 LCD_Out(2,13,txt);*/
 ByteToStr(set_ds1307_seconds,txt);
-LCD_OUT(2,12,"S:");
-LCD_Out(2,13,txt);
+LCD_OUT(1,12,"S:");
+LCD_Out(1,13,txt);
 if (Exit==1 )   break;     //break out of the while loop
 while(Increment==1 || Decrement==1)
 {
@@ -969,7 +994,6 @@ Write_Time(Dec2Bcd(set_ds1307_seconds),Dec2Bcd(set_ds1307_minutes),Dec2Bcd(set_d
 } // end first while
 //---------------------------------Set Date-------------------------------------
 Delay_ms(500);
-LCD_Clear(1,1,16);  // clear the lcd first row
 LCD_CLear(2,1,16); // clear the lcd two row
 //LCD_OUT(1,1,"Set Date[D] [12]");
 //set_ds1307_day=Read_Day();
@@ -981,7 +1005,7 @@ ByteToStr(set_ds1307_day,txt);
 LCD_OUT(2,1,"D:");
 LCD_OUT(2,6,"M:");
 LCD_OUT(2,12,"Y:");
-LCD_Out(2,3,txt);
+LCD_Out(2,2,txt);
 if (Exit==1 )   break;     //break out of the while loop
 while(Increment==1 || Decrement==1)
 {
@@ -1001,14 +1025,14 @@ if (set_ds1307_day<0) set_ds1307_day=0;
 } //  end while set
 //********************************Months****************************************
 Delay_ms(500);
-LCD_Clear(1,1,16);
+//LCD_Clear(1,1,16);
 //LCD_OUT(1,1,"Set Date[M] [13]");
 //set_ds1307_month=Read_Month();
 set_ds1307_month=ReadDate(0x05);
 while (Set==1)
 {
 ByteToStr(set_ds1307_month,txt);
-LCD_Out(2,8,txt);
+LCD_Out(2,7,txt);
 if (Exit==1 )   break;     //break out of the while loop
 while(Increment==1 || Decrement==1)
 {
@@ -1029,7 +1053,7 @@ if (set_ds1307_month<0) set_ds1307_month=0;
 } //  end while set
 //*************************************Years************************************
 Delay_ms(500);
-LCD_Clear(1,1,16);
+//LCD_Clear(1,1,16);
 //LCD_OUT(1,1,"Set Date[Y] [14]");
 //set_ds1307_year=Read_Year();
 set_ds1307_year=ReadDate(0x06);
@@ -1037,7 +1061,7 @@ set_ds1307_year=ReadDate(0x06);
 while (Set==1)
 {
 ByteToStr(set_ds1307_year,txt);
-LCD_Out(2,14,txt);
+LCD_Out(2,13,txt);
 if (Exit==1)   break;     //break out of the while loop
 while(Increment==1 || Decrement==1)
 {
@@ -1063,14 +1087,15 @@ Write_Date(Dec2Bcd(set_ds1307_day),Dec2Bcd(set_ds1307_month),Dec2Bcd(set_ds1307_
 //----------------------SetLowBatteryVoltage------------------------------------
 void SetLowBatteryVoltage()
 {
-LCD_OUT(1,1,"Low Battery  [5]");
+LCD_Clear(1,1,16);
+//LCD_OUT(1,1,"Low Battery  [5]");
 Delay_ms(500);
 LCD_Clear(2,1,16);
 while(Set==1)
 {
-LCD_OUT(2,1,"T1");
+LCD_OUT(1,1,"[5]  T1");
 sprintf(txt,"%4.1fV",Mini_Battery_Voltage);     // re format vin_battery to have 2 decimals
-LCD_OUT(2,4,txt);
+LCD_OUT(1,10,txt);
 //LCD_OUT(2,9,"V");
 if (Exit==1)   break;     //break out of the while loop
 while (Increment==1 || Decrement==1)
@@ -1095,9 +1120,9 @@ StoreBytesIntoEEprom(0x30,(unsigned short *)&Mini_Battery_Voltage,4);   // save 
 Delay_ms(500);
 while(Set==1)
 {
-LCD_OUT(2,1,"T2");
+LCD_OUT(1,1,"[5]  T2");
 sprintf(txt,"%4.1fV",Mini_Battery_Voltage_T2);     // re format vin_battery to have 2 decimals
-LCD_OUT(2,4,txt);
+LCD_OUT(1,10,txt);
 //LCD_OUT(2,9,"V");
 if (Exit==1)   break;     //break out of the while loop
 while (Increment==1 || Decrement==1)
@@ -1124,14 +1149,15 @@ LCD_CMD(_LCD_CLEAR);
 //---------------------StatrtUp Battery Voltage for Loads-----------------------
 void SetStartUpLoadsVoltage()
 {
-LCD_OUT(1,1,"Start Loads V[6]");
+LCD_Clear(1,1,16);
+//LCD_OUT(1,1,"Start Loads V[6]");
 Delay_ms(500);
-LCD_Clear(2,1,16);
+//LCD_Clear(2,1,16);
 while(Set==1)
 {
-LCD_OUT(2,1,"T1");
+LCD_OUT(1,1,"[6]  T1");
 sprintf(txt,"%4.1fV",StartLoadsVoltage);     // re format vin_battery to have 2 decimals
-LCD_OUT(2,4,txt);
+LCD_OUT(1,10,txt);
 //LCD_OUT(2,9,"V");
 if (Exit==1)   break;     //break out of the while loop
 while (Increment==1 || Decrement==1)
@@ -1157,9 +1183,9 @@ Delay_ms(500);
 
 while(Set==1)
 {
-LCD_OUT(2,1,"T2");
+LCD_OUT(1,1,"[6]  T2");
 sprintf(txt,"%4.1fV",StartLoadsVoltage_T2);     // re format vin_battery to have 2 decimals
-LCD_OUT(2,4,txt);
+LCD_OUT(1,10,txt);
 //LCD_OUT(2,9,"V");
 if (Exit==1)   break;     //break out of the while loop
 while (Increment==1 || Decrement==1)
@@ -1186,85 +1212,23 @@ StoreBytesIntoEEprom(0x55,(unsigned short *)&StartLoadsVoltage_T2,4);   // save 
 
 LCD_CMD(_LCD_CLEAR);
 }
-//----------------------------Program 11 Set High Voltage-----------------------
-void SetHighVoltage()
-{
-//LCD_OUT(1,1,"High AC Volt [7]");
-Delay_ms(500);
-LCD_Clear(2,1,16);
-while(Set==1)
-{
-IntToStr(High_Voltage,txt);
-LCD_OUT(2,1,txt);
-if (Exit==1)   break;     //break out of the while loop
-while(Increment==1 || Decrement==1)
-{
-IntToStr(High_Voltage,txt);
-LCD_OUT(2,1,txt);
-if (Increment==1)
-{
-Delay_ms(ButtonDelay);
-High_Voltage++;
-}
-if(Decrement==1)
-{
-Delay_ms(ButtonDelay);
-High_Voltage--;
-}
- if(High_Voltage > 255 ) High_Voltage=0;
- if (High_Voltage < 0 ) High_Voltage=0;
-} // end while increment or decrement
-} // end while set
-EEPROM_Write(0x12,High_Voltage);
-LCD_CMD(_LCD_CLEAR);
-}
-//-------------------------------Program 12-------------------------------------
-void SetLowVoltage()
-{
-//LCD_OUT(1,1,"Low AC Volt [8]");
-Delay_ms(500);
-LCD_Clear(2,1,16);
-while(Set==1)
-{
-IntToStr(Low_Voltage,txt);
-LCD_OUT(2,1,txt);
-if (Exit==1)   break;     //break out of the while loop
-while(Increment==1 || Decrement==1)
-{
-IntToStr(Low_Voltage,txt);
-LCD_OUT(2,1,txt);
-if (Increment==1)
-{
-Delay_ms(ButtonDelay);
-Low_Voltage++;
-}
-if(Decrement==1)
-{
-Delay_ms(ButtonDelay);
-Low_Voltage--;
-}
- if(Low_Voltage > 255 ) Low_Voltage=0;
- if (Low_Voltage < 0 ) Low_Voltage=0;
-} // end while increment or decrement
-} // end while set
-LCD_Clear(1,1,16);
-EEPROM_Write(0x13,Low_Voltage);
-LCD_CMD(_LCD_CLEAR);
-}
+
+
 //------------------------------ StartUp Timer----------------------------------
 //- > when grid is available and load must turn on they must have time between each
 //-> other so solar inverter don't switch off
 void Startup_Timers()
 {
-LCD_OUT(1,1,"Start Loads [7]");
+//LCD_OUT(1,1,"Start Loads [7]");
 Delay_ms(500);
-LCD_Clear(2,1,16);
+LCD_Clear(1,1,16);
+
 while(Set==1)
 {
 IntToStr(startupTIme_1,txt);
-LCD_OUT(2,1,"T1");
+LCD_OUT(1,1,"[7]  T1");
 //LCD_OUT(2,16,"S");
-LCD_OUT(2,5,txt);
+LCD_OUT(1,8,txt);
 if(Exit==1) break ; // break while loop
 while(Increment==1 || Decrement==1)
 {
@@ -1287,12 +1251,13 @@ if (startupTIme_1<0) startupTIme_1=0;
 StoreBytesIntoEEprom(0x45,(unsigned short *)&startupTIme_1,2);   // save float number to eeprom
 //**********************************End First While-----------------------------
 Delay_ms(500);
+LCD_Clear(1,1,16);
 while (Set==1)
 {
 IntToStr(startupTIme_2,txt);
-LCD_OUT(2,1,"T2");
+LCD_OUT(1,1,"[7]  T2");
 //LCD_OUT(2,16,"S");
-LCD_OUT(2,5,txt);
+LCD_OUT(1,8,txt);
 if(Exit==1) break ; // break while loop
 while(Increment==1 || Decrement==1)
 {
@@ -1808,7 +1773,7 @@ if(AC_Available==1 && Timer_isOn==0 && RunLoadsByBass==0  && RunOnBatteryVoltage
 SecondsRealTime=0;
 Relay_L_Solar=0;
 AcBuzzerActiveTimes=0; // make buzzer va  riable zero to get activated once again
-LCD_Clear(2,7,16); // to clear lcd when grid is not available
+///LCD_Clear(2,7,16); // to clear lcd when grid is not available
 }
 
 if (AC_Available==1 && Timer_2_isOn==0 && RunLoadsByBass==0 && RunOnBatteryVoltageMode==0)  // it must be   Timer_2_isOn==0    but because of error in loading eeprom value
@@ -1816,51 +1781,23 @@ if (AC_Available==1 && Timer_2_isOn==0 && RunLoadsByBass==0 && RunOnBatteryVolta
 SecondsRealTime=0;
 Relay_L_Solar_2=0;
 AcBuzzerActiveTimes=0; // make buzzer va  riable zero to get activated once again
-LCD_Clear(2,7,16); // to clear lcd when grid is not available
+///LCD_Clear(2,7,16); // to clear lcd when grid is not available
 }
 
+//-> upo mode
+if (AC_Available==1 &&  RunLoadsByBass==0 && UPSMode==1 && LoadsAlreadySwitchedOFF==1)
+{
+LoadsAlreadySwitchedOFF=0;
+SecondsRealTime=0;
+SecondsRealTimePv_ReConnect_T1=0;
+SecondsRealTimePv_ReConnect_T2=0;
+Relay_L_Solar_2=0;
+Relay_L_Solar=0;
 }
-//------------------------------------------------------------------------------
-/*CheckForVoltageProtection()
-{
-if (VoltageProtectionEnable==1)  LCD_OUT(1,16,"P"); else LCD_OUT(1,16," ") ;
-if(Exit==1 && Set==0 )
-{
-delay_ms(2000);
-if(Exit==1 && Set==0 ) {
-if (VoltageProtectorEnableFlag==1)         // protector as default is enabled so make it not enabled
-{
-VoltageProtectionEnable=0;
-VoltageProtectorEnableFlag=0;
-EEPROM_Write(0x15,0);
 }
-else if ( VoltageProtectorEnableFlag==0)
-{
-VoltageProtectionEnable=1;
-VoltageProtectorEnableFlag=1;
-EEPROM_Write(0x15,1);
-}
-} // end if two conditions
-}// end if exit
-
-}  */
 //------------------------------------------------------------------------------
 void CheckForTimerActivationOutRange()
 {
-/*if(RunOnBatteryVoltageMode==0)
-{
- //-a turn off loads out of time range  range
-if(ReadHours() >= hours_lcd_1 && ReadMinutes() >= minutes_lcd_1 && ReadHours() >= hours_lcd_2 && ReadMinutes()>=minutes_lcd_2 )
-{
-Timer_isOn=0;
-}
-//------------------------------------------------------------------------------
-if (ReadHours() >= hours_lcd_timer2_start && ReadMinutes() >= minutes_lcd_timer2_start && ReadHours() >= hours_lcd_timer2_stop && ReadMinutes()>=minutes_lcd_timer2_stop )
-{
-Timer_2_isOn=0;
-}
-} // run on battery voltage mode*/
-
 if (RunOnBatteryVoltageMode==0)
 {
 //------------------------------First Timer-------------------------------------
