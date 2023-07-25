@@ -187,7 +187,7 @@ LCD_CMD(_LCD_CLEAR);
 LCD_CMD(_LCD_CURSOR_OFF);
 LCD_OUT(1,1,"   SLC V1.2.4   ");
 Delay_ms(500);
-///LCD_CMD(_LCD_CLEAR);
+LCD_CMD(_LCD_CLEAR);
 }
 
 //-----------------------------------LCD Clear----------------------------------
@@ -1516,23 +1516,23 @@ if(period==1) // summer  timer
 if(SystemBatteryMode==12)
 {
 Mini_Battery_Voltage=12.0;
-StartLoadsVoltage=13.5;
-Mini_Battery_Voltage_T2=12.5,
-StartLoadsVoltage_T2=13.8;
+StartLoadsVoltage=13.0;
+Mini_Battery_Voltage_T2=12.3,
+StartLoadsVoltage_T2=13.2;
 }
 if(SystemBatteryMode==24)
 {
 Mini_Battery_Voltage=24.5;
-StartLoadsVoltage=26.5;
-Mini_Battery_Voltage_T2=25.5,
-StartLoadsVoltage_T2=27.5;
+StartLoadsVoltage=26.0;
+Mini_Battery_Voltage_T2=25.0,
+StartLoadsVoltage_T2=26.5;
 }
 if(SystemBatteryMode==48)
 {
 Mini_Battery_Voltage=49.0;
 StartLoadsVoltage=52.0;
 Mini_Battery_Voltage_T2=50.0,
-StartLoadsVoltage_T2=54.0;
+StartLoadsVoltage_T2=53.0;
 }
 startupTIme_1 =180;
 startupTIme_2=240;
@@ -1896,6 +1896,7 @@ if (UpdateScreenTime==5600  )  // 1800 is 60 seconds to update
 {
 Backlight=0;
 LCD_Init();
+LCD_CMD(_LCD_CLEAR);       //very important
 LCD_CMD(_LCD_CURSOR_OFF);
 UpdateScreenTime=0;
 }
