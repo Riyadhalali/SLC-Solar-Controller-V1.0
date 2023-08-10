@@ -185,8 +185,8 @@ Backlight=1; // turn backlight on
 LCD_Init();
 LCD_CMD(_LCD_CLEAR);
 LCD_CMD(_LCD_CURSOR_OFF);
-LCD_OUT(1,1,"   SLC V1.2.4   ");
-Delay_ms(500);
+LCD_OUT(1,1,"   SLC V1.2.5   ");
+Delay_ms(1500);
 LCD_CMD(_LCD_CLEAR);
 }
 
@@ -205,11 +205,18 @@ void Config_Interrupts()
 {
 ISC10_bit=1;   // Config The rising edge of INT0 generates an interrupt request.
 ISC11_bit=1;
+ISC01_bit=0;
+ISC00_bit=1;
 INT1_bit=1;
+INT0_bit=1;
 SREG_I_bit=1; // enable the global interrupt vector
 }
-
-
+void Interrupt_INT0() iv IVT_ADDR_INT0 
+{
+UpdateScreenTime=0; // if user pressed the button zero counter of dipslay backlight
+Backlight=1;
+INTF0_bit=1; //clear
+}
 //---------------External Interrupts for INT1 for ac available------------------
 void Interrupt_INT1 () iv IVT_ADDR_INT1
 {
@@ -529,7 +536,7 @@ Backlight=1;
 SREG_I_bit=0;     // disable interrupts
 LCD_CMD(_LCD_CLEAR);
 LCD_OUT(1,1,"Setup Program");
-Delay_ms(500);
+Delay_ms(2500);
 //---------------------------------Enter Programs ------------------------------
 //-> enter setup mode and don't exit it until the user hit set button
 while (Set==1 && EnterSetupProgram==1 )
@@ -939,8 +946,8 @@ LCD_Out(2,7,txt);
 //LCD_Chr_Cp('-');*/
 
 ByteToStr(set_ds1307_minutes,txt);
-LCD_OUT(1,6,"M:");
-LCD_Out(1,7,txt);
+LCD_OUT(1,10,"M:");
+LCD_Out(1,12,txt);
 if (Exit==1 )   break;     //break out of the while loop
 while (Increment==1 || Decrement==1)
 {
@@ -958,17 +965,12 @@ set_ds1307_minutes--;
 if(set_ds1307_minutes>59) set_ds1307_minutes=0;
 if(set_ds1307_minutes<0) set_ds1307_minutes=0;
 } // end while decrement or increment
+Write_Time(Dec2Bcd(0),Dec2Bcd(set_ds1307_minutes),Dec2Bcd(set_ds1307_hours)); // write time to DS1307
 } // end first while
 //*******************************Seconds****************************************
 Delay_ms(500);
-//LCD_Clear(1,1,16);
-//LCD_OUT(1,1,"Set Time[S] [11]");
-
-while (Set==1 )
+/*while (Set==1 )
 {
-/*ByteToStr(set_ds1307_seconds,txt);
-//LCD_OUT(2,12,"S:");
-LCD_Out(2,13,txt);*/
 ByteToStr(set_ds1307_seconds,txt);
 LCD_OUT(1,12,"S:");
 LCD_Out(1,13,txt);
@@ -988,17 +990,14 @@ set_ds1307_seconds--;
 if (set_ds1307_seconds>59) set_ds1307_seconds=0;
 if (set_ds1307_seconds<0) set_ds1307_seconds=0;
 //-> Send Now time to ds1307 to be set
-//-> to force user to change the time when the last seconds options is changing it must be saved
-Write_Time(Dec2Bcd(set_ds1307_seconds),Dec2Bcd(set_ds1307_minutes),Dec2Bcd(set_ds1307_hours)); // write time to DS1307
 } // end while decrement or increment
-} // end first while
+ Write_Time(Dec2Bcd(0),Dec2Bcd(set_ds1307_minutes),Dec2Bcd(set_ds1307_hours)); // write time to DS1307
+} // end first while*/
+
 //---------------------------------Set Date-------------------------------------
 Delay_ms(500);
 LCD_CLear(2,1,16); // clear the lcd two row
-//LCD_OUT(1,1,"Set Date[D] [12]");
-//set_ds1307_day=Read_Day();
 set_ds1307_day=ReadDate(0x04);
-
 while (Set==1)
 {
 ByteToStr(set_ds1307_day,txt);
@@ -1025,9 +1024,6 @@ if (set_ds1307_day<0) set_ds1307_day=0;
 } //  end while set
 //********************************Months****************************************
 Delay_ms(500);
-//LCD_Clear(1,1,16);
-//LCD_OUT(1,1,"Set Date[M] [13]");
-//set_ds1307_month=Read_Month();
 set_ds1307_month=ReadDate(0x05);
 while (Set==1)
 {
@@ -1053,11 +1049,7 @@ if (set_ds1307_month<0) set_ds1307_month=0;
 } //  end while set
 //*************************************Years************************************
 Delay_ms(500);
-//LCD_Clear(1,1,16);
-//LCD_OUT(1,1,"Set Date[Y] [14]");
-//set_ds1307_year=Read_Year();
 set_ds1307_year=ReadDate(0x06);
-
 while (Set==1)
 {
 ByteToStr(set_ds1307_year,txt);
@@ -1083,7 +1075,6 @@ if (set_ds1307_year<0) set_ds1307_year=0;
 Write_Date(Dec2Bcd(set_ds1307_day),Dec2Bcd(set_ds1307_month),Dec2Bcd(set_ds1307_year)); // write Date to DS1307
 } //  end while set
 }  // end setTimeAndData
-
 //----------------------SetLowBatteryVoltage------------------------------------
 void SetLowBatteryVoltage()
 {
@@ -1567,22 +1558,24 @@ void RunTimersNowCheck()
 if(Exit==1 && Increment==0 && Decrement==0 && Set==1)
 {
 Backlight=1;
+UpdateScreenTime=0; // if user pressed the button zero counter of dipslay backlight
 }
 //-----------------------------Bypass Mode -------------------------------------
 if(Increment==1 && Exit==0)
 {
 Backlight=1;
-Delay_ms(3000);
+UpdateScreenTime=0; // if user pressed the button zero counter of dipslay backlight
+Delay_ms(2500);
 if (Increment==1 && Exit==0)
 {
-Delay_ms(4000);
+Delay_ms(2500);
 if (Increment==1 && Exit==0)
 {
 RunLoadsByBass++;
 if (  RunLoadsByBass==1 ) Relay_L_Solar=1;
 if (RunLoadsByBass>=2 )
 {
-Delay_ms(2000);
+///Delay_ms(2000);
 Relay_L_Solar_2=1;
 }
 
@@ -1593,6 +1586,7 @@ Relay_L_Solar_2=1;
 if (Increment==1 && Exit==1 && Decrement==0)      // first
 {
 Backlight=1;
+UpdateScreenTime=0; // if user pressed the button zero counter of dipslay backlight
 Delay_ms(1000);
 if ( Increment==1 && Exit==1 && Decrement==0)
 {
@@ -1625,10 +1619,11 @@ LCD_CMD(_LCD_CLEAR);
 if(Decrement==1 && Exit==0)
 {
 Backlight=1;
-Delay_ms(3000);
+UpdateScreenTime=0; // if user pressed the button zero counter of dipslay backlight
+Delay_ms(2500);
 if (Decrement==1 && Exit==0)
 {
-Delay_ms(4000);
+Delay_ms(2500);
 if (Decrement==1 && Exit==0)
 {
 TurnOffLoadsByPass=1;
@@ -1671,8 +1666,11 @@ LCD_CLEAR(2,1,16);
 void CheckForSet()
 {
 
-if (Set==0 && Exit==0) SetUpProgram();
-
+if (Set==0 && Exit==0) 
+{
+Delay_ms(2500);
+SetUpProgram();
+}
 }
 //------------------------Auto program For battery------------------------------
 //@this program used for running timers without battery and to be set auto

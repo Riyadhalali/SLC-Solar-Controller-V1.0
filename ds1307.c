@@ -218,7 +218,7 @@ void TWI_TimeoutCallback(char errorCode) {
   //----------------------------------------TWI Config--------------------------
   void TWI_Config()
   {
-   TWI_Init(50000);
+   TWI_Init(100000);
    TWI_SetTimeoutCallback(1000, TWI_TimeoutCallback);
   }
   //-----------------------------------Check Time-------------------------------
