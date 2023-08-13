@@ -965,9 +965,9 @@ set_ds1307_minutes--;
 if(set_ds1307_minutes>59) set_ds1307_minutes=0;
 if(set_ds1307_minutes<0) set_ds1307_minutes=0;
 } // end while decrement or increment
-Write_Time(Dec2Bcd(0),Dec2Bcd(set_ds1307_minutes),Dec2Bcd(set_ds1307_hours)); // write time to DS1307
 } // end first while
 //*******************************Seconds****************************************
+Write_Time(Dec2Bcd(0),Dec2Bcd(set_ds1307_minutes),Dec2Bcd(set_ds1307_hours)); // write time to DS1307
 Delay_ms(500);
 /*while (Set==1 )
 {
