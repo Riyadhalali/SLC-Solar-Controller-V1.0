@@ -148,6 +148,7 @@ void RunTimersNowCheck();
 void Watch_Dog_Timer_Enable();
 void Watch_Dog_Timer_Disable();
 void Write_Date(); // to set date of ds1307
+void CheckForParams();
 //------------------------------------------------------------------------------
 void Gpio_Init()
 {
@@ -185,9 +186,10 @@ Backlight=1; // turn backlight on
 LCD_Init();
 LCD_CMD(_LCD_CLEAR);
 LCD_CMD(_LCD_CURSOR_OFF);
-LCD_OUT(1,1,"   SLC V1.2.5   ");
+LCD_OUT(1,1,"   SLC V1.2.7   ");
 Delay_ms(1500);
 LCD_CMD(_LCD_CLEAR);
+LCD_CMD(_LCD_RETURN_HOME);
 }
 
 //-----------------------------------LCD Clear----------------------------------
@@ -213,6 +215,12 @@ SREG_I_bit=1; // enable the global interrupt vector
 }
 void Interrupt_INT0() iv IVT_ADDR_INT0 
 {
+LCD_CMD(_LCD_TURN_ON);  //turn lcd on
+Delay_ms(50);
+Lcd_Init();
+LCD_CMD(_LCD_CLEAR);
+Lcd_CMD(_LCD_CURSOR_OFF);
+LCD_CMD(_LCD_RETURN_HOME);
 UpdateScreenTime=0; // if user pressed the button zero counter of dipslay backlight
 Backlight=1;
 INTF0_bit=1; //clear
@@ -1235,7 +1243,7 @@ if(Decrement==1)
 Delay_ms(100);
 startupTIme_1--;
 }
-if(startupTIme_1 > 600  ) startupTIme_1=0;
+if(startupTIme_1 > 900  ) startupTIme_1=0;
 if (startupTIme_1<0) startupTIme_1=0;
 } // end  while increment decrement
 } // end while main while set
@@ -1264,7 +1272,7 @@ if(Decrement==1)
 Delay_ms(100);
 startupTIme_2--;
 }
-if(startupTIme_2 > 600 ) startupTIme_2=0;
+if(startupTIme_2 > 900 ) startupTIme_2=0;
 if (startupTIme_2<0) startupTIme_2=0;
 } // end while increment and decrement
 } // end while set
@@ -1313,6 +1321,7 @@ LCD_OUT(1,1,"Voltage Mode");
 }
 Read_Battery();
 CalculateAC();
+LCD_CMD(_LCD_RETURN_HOME);    // to keep display in its location
 }
 //----------------------------ADC Battery Voltage 12v/24v/48v-------------------
 void ADCBattery()
@@ -1442,7 +1451,7 @@ void Interupt_Timer_0_A_OFFTime() iv IVT_ADDR_TIMER0_COMPA
 ///SREG_I_Bit=0; // disable interrupts
 Timer_Counter_3++;                // timer for battery voltage
 Timer_Counter_4++;
-Timer_Counter_For_Grid_Turn_Off++;
+//Timer_Counter_For_Grid_Turn_Off++;
 
 //- give some time to battery to turn off loads
 if (Timer_Counter_3==500)              // more than 10 seconds
@@ -1475,6 +1484,7 @@ Stop_Timer_0();
  // give some time to ac loads when grid is available and grid is low or high to switch off/
 //if (Timer_Counter_3==1000)              // more than 10 seconds
 //{
+/*
 if (Timer_Counter_For_Grid_Turn_Off==1000)
 {
 if(VoltageProtectorGood==0 && AC_Available==0)
@@ -1487,7 +1497,7 @@ Relay_L_Solar_2=0;
 Timer_Counter_For_Grid_Turn_Off=0;
 Stop_Timer_0();
 }
-
+*/
 SREG_I_Bit=1;
 OCF0A_Bit=1; // clear
 }
@@ -1514,9 +1524,9 @@ StartLoadsVoltage_T2=13.2;
 if(SystemBatteryMode==24)
 {
 Mini_Battery_Voltage=24.5;
-StartLoadsVoltage=26.0;
+StartLoadsVoltage=25.5;
 Mini_Battery_Voltage_T2=25.0,
-StartLoadsVoltage_T2=26.5;
+StartLoadsVoltage_T2=26.0;
 }
 if(SystemBatteryMode==48)
 {
@@ -1538,7 +1548,7 @@ EEPROM_Write(0x19,0);    // writing  start minutes
 EEPROM_Write(0x20,17);    // writing off hours
 EEPROM_Write(0x21,0);    // writing off minutes
 EEPROM_Write(0x99,0);    // run on battery voltage mode
-EEPROM_Write(0x102,1); // ups mode
+EEPROM_Write(0x102,0); // ups mode
 //**********************************************
 StoreBytesIntoEEprom(0x30,(unsigned short *)&Mini_Battery_Voltage,4);   // save float number to eeprom
 StoreBytesIntoEEprom(0x40,(unsigned short *)&StartLoadsVoltage,4);
@@ -1548,8 +1558,8 @@ StoreBytesIntoEEprom(0x51,(unsigned short *)&Mini_Battery_Voltage_T2,4);
 StoreBytesIntoEEprom(0x55,(unsigned short *)&StartLoadsVoltage_T2,4);
 }
 //global variables
-EEPROM_Write(0x12,260); //  high voltage Grid
-EEPROM_Write(0x13,170); // load low voltage
+//EEPROM_Write(0x12,260); //  high voltage Grid
+//EEPROM_Write(0x13,170); // load low voltage
 EEPROM_Write(0x15,0); // voltage protector not enabled as default
 }
 //---------------This function is for making timers run now---------------------
@@ -1870,6 +1880,7 @@ OCIE2A_Bit=1;
 void InitScreenTimer() iv  IVT_ADDR_TIMER2_COMPA
 {
 UpdateScreenTime++;
+/*
 ReadBatteryTime++;
 if (ReadBatteryTime==200)
 {
@@ -1889,6 +1900,7 @@ Start_Timer_0_A();         // give some time for battery voltage
 TurnLoadsOffWhenGridOff();
 ReadBatteryTime=0;
 }
+*/
 //---------------For turning off backlight and refresh screen-------------------
 if (UpdateScreenTime==5600  )  // 1800 is 60 seconds to update
 {
@@ -1896,6 +1908,8 @@ Backlight=0;
 LCD_Init();
 LCD_CMD(_LCD_CLEAR);       //very important
 LCD_CMD(_LCD_CURSOR_OFF);
+LCD_CMD(_LCD_RETURN_HOME);
+LCD_CMD(_LCD_TURN_OFF);
 UpdateScreenTime=0;
 }
 OCF2A_Bit=1;
@@ -1946,6 +1960,21 @@ WDTCSR = 0x00;
 //asm sei;
 SREG_I_bit=1;
 }
+//----------------------------------Check for Params----------------------------
+void CheckForParams()
+{
+if (hours_lcd_1>24
+|| hours_lcd_2>24
+|| minutes_lcd_1 >59
+|| minutes_lcd_2 >59
+|| hours_lcd_timer2_start>24
+|| hours_lcd_timer2_stop>24
+|| minutes_lcd_timer2_start >59
+|| minutes_lcd_timer2_stop >59
+|| startupTIme_1 > 900
+|| startupTIme_2  >900
+ ) EEPROM_FactorySettings(1);
+}
 //------------------------------------------------------------------------------
 void main() {
 WDT_Disable();  // very important or the mcu will stuck at start
@@ -1963,6 +1992,7 @@ ReadBytesFromEEprom(0x55,(unsigned short *)&StartLoadsVoltage_T2,4);
 UpdateScreenTimerInit_Timer_2();   // to update screen and turn off light
 while(1)
 {
+//CheckForParams();          //maybe i will make it v1.2.7
 CheckForSet();
 RunTimersNowCheck();
 AutoRunWithOutBatteryProtection(); // to auto select run with battery protection or not

@@ -6,7 +6,7 @@ Notes: bcd_values is the time entered by user from lcd
 */
 
 unsigned short Data;
-unsigned short reg_1;
+unsigned short reg_1,reg_3,reg_4,reg_5,reg_6;
 unsigned short reg_2;
 unsigned short Full_Minutes,Full_Hours,Full_Seconds;
 unsigned short seconds_reg_1_On;
@@ -16,6 +16,7 @@ unsigned short minutes_reg_2_On,hours_reg_2_On;
 char bcd_value_seconds_L_On,bcd_value_seconds_H_On;
 char bcd_value_minutes_L_On,bcd_value_minutes_H_On;
 char bcd_value_hours_L_On,bcd_value_hours_H_On;
+
 
 unsigned short seconds_reg_1_Off;
 unsigned short minutes_reg_1_Off,hours_reg_1_Off;
@@ -87,46 +88,7 @@ Full_Hours=(reg_2<<4)+reg_1;
 Full_Hours=Bcd2Dec(Full_Hours);
 return Full_Hours;
 }
-//---------------------------Read Date------------------------------------------
-/*unsigned short Read_Day()
-{
-Read_DS1307(0x04);    //read seconds "0x00" or read minutes "0x01"
-reg_1 = Data & 0x0F;
-reg_2 = Data & 0xF0;
-reg_2 = reg_2 >> 4;
-day=(reg_2<<4)+reg_1;
-day=Bcd2Dec(day);
-//IntToStr(day,txt2);
-//LCD_OUT(2,1,txt2);
-return day;
-}
-
-unsigned short Read_Month()
-{
-Read_DS1307(0x05);    //read seconds "0x00" or read minutes "0x01"
-reg_1 = Data & 0x0F;
-reg_2 = Data & 0xF0;
-reg_2 = reg_2 >> 4;
-month=(reg_2<<4)+reg_1;
-month=Bcd2Dec(month);
-//IntToStr(day,txt2);
-//LCD_OUT(2,1,txt2);
-return month;
-}
-
-unsigned short Read_Year()
-{
-Read_DS1307(0x06);    //read seconds "0x00" or read minutes "0x01"
-reg_1 = Data & 0x0F;
-reg_2 = Data & 0xF0;
-reg_2 = reg_2 >> 4;
-year=(reg_2<<4)+reg_1;
-year=Bcd2Dec(year);
-//IntToStr(day,txt2);
-//LCD_OUT(2,1,txt2);
-return year;
-}*/
-
+//----------------------------Read Date-----------------------------------------
 unsigned short ReadDate (unsigned short date_address)
 {
 Read_DS1307(date_address);    //read seconds "0x00" or read minutes "0x01"
@@ -138,37 +100,11 @@ date=Bcd2Dec(date);
 return date;
 }
 
-//-------------------------------Read Time--------------------------------------
-/*void Read_Date()
-{
-
-  Read_DS1307(0x04);         //Day
-  reg_1 = Data & 0x0F;
-  reg_2 = Data & 0xF0;
-  reg_2 = reg_2 >> 4;
-  LCD_OUT(2,1,"Date:");
-  Lcd_Chr(2 , 6, reg_2+0x30);
-  Lcd_Chr_Cp(reg_1 + 0x30);
-  Lcd_Chr_Cp('-');
-  Read_DS1307(0x05);          // Month
-  reg_1 = Data & 0x0F;
-  reg_2 = Data & 0xF0;
-  reg_2 = reg_2 >> 4;
-  Lcd_Chr_Cp(reg_2 + 0x30);
-  Lcd_Chr_Cp(reg_1 + 0x30);
-  Lcd_Chr_Cp('-');
-  Read_DS1307(0x06);      // Year
-  reg_1 = Data&0x0F;
-  reg_2 = Data&0xF0;
-  reg_2 = reg_2 >> 4;
-  Lcd_Chr_cp(reg_2 + 0x30);
-  Lcd_Chr_cp(reg_1 + 0x30);
-  delay_ms(100);
-}*/
 
 void Read_time()
 {
   //LCD_CMD(_LCD_CLEAR);
+  
   Read_DS1307(0x02);
   reg_1 = Data & 0x0F;
   reg_2 = Data & 0xF0;
@@ -177,6 +113,7 @@ void Read_time()
   Lcd_Chr(1 , 6, reg_2+0x30);
   Lcd_Chr_Cp(reg_1 + 0x30);
   Lcd_Chr_Cp('-');
+  delay_ms(10);
   Read_DS1307(0x01);
   reg_1 = Data & 0x0F;
   reg_2 = Data & 0xF0;
@@ -184,6 +121,7 @@ void Read_time()
   Lcd_Chr_Cp(reg_2 + 0x30);
   Lcd_Chr_Cp(reg_1 + 0x30);
   Lcd_Chr_Cp('-');
+  delay_ms(10);
   Read_DS1307(0x00);
   reg_1 = Data&0x0F;
   reg_2 = Data&0xF0;
@@ -191,6 +129,7 @@ void Read_time()
   Lcd_Chr_cp(reg_2 + 0x30);
   Lcd_Chr_cp(reg_1 + 0x30);
   delay_ms(100);
+
   }
   //------------------------------TWI Call Back---------------------------------
   // define callback function
