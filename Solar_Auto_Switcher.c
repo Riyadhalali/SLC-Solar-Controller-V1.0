@@ -149,6 +149,7 @@ void Watch_Dog_Timer_Enable();
 void Watch_Dog_Timer_Disable();
 void Write_Date(); // to set date of ds1307
 void CheckForParams();
+void LCD_ReConfig();
 //------------------------------------------------------------------------------
 void Gpio_Init()
 {
@@ -186,10 +187,11 @@ Backlight=1; // turn backlight on
 LCD_Init();
 LCD_CMD(_LCD_CLEAR);
 LCD_CMD(_LCD_CURSOR_OFF);
-LCD_OUT(1,1,"   SLC V1.2.7   ");
+LCD_CMD(_LCD_RETURN_HOME);
+LCD_OUT(1,1,"   SLC V1.2.8   ");
 Delay_ms(1500);
 LCD_CMD(_LCD_CLEAR);
-LCD_CMD(_LCD_RETURN_HOME);
+
 }
 
 //-----------------------------------LCD Clear----------------------------------
@@ -215,7 +217,7 @@ SREG_I_bit=1; // enable the global interrupt vector
 }
 void Interrupt_INT0() iv IVT_ADDR_INT0 
 {
-LCD_CMD(_LCD_TURN_ON);  //turn lcd on
+//LCD_CMD(_LCD_TURN_ON);  //turn lcd on
 Delay_ms(50);
 Lcd_Init();
 LCD_CMD(_LCD_CLEAR);
@@ -1321,7 +1323,7 @@ LCD_OUT(1,1,"Voltage Mode");
 }
 Read_Battery();
 CalculateAC();
-LCD_CMD(_LCD_RETURN_HOME);    // to keep display in its location
+//LCD_CMD(_LCD_RETURN_HOME);    // to keep display in its location
 }
 //----------------------------ADC Battery Voltage 12v/24v/48v-------------------
 void ADCBattery()
@@ -1567,14 +1569,16 @@ void RunTimersNowCheck()
 {
 if(Exit==1 && Increment==0 && Decrement==0 && Set==1)
 {
-Backlight=1;
-UpdateScreenTime=0; // if user pressed the button zero counter of dipslay backlight
+//Backlight=1;
+LCD_ReConfig();
+//UpdateScreenTime=0; // if user pressed the button zero counter of dipslay backlight
 }
 //-----------------------------Bypass Mode -------------------------------------
 if(Increment==1 && Exit==0)
 {
-Backlight=1;
-UpdateScreenTime=0; // if user pressed the button zero counter of dipslay backlight
+//Backlight=1;
+LCD_ReConfig();
+//UpdateScreenTime=0; // if user pressed the button zero counter of dipslay backlight
 Delay_ms(2500);
 if (Increment==1 && Exit==0)
 {
@@ -1595,8 +1599,9 @@ Relay_L_Solar_2=1;
 //---------------------------------Reset to Summer time-------------------------
 if (Increment==1 && Exit==1 && Decrement==0)      // first
 {
-Backlight=1;
-UpdateScreenTime=0; // if user pressed the button zero counter of dipslay backlight
+//Backlight=1;
+LCD_ReConfig();
+//UpdateScreenTime=0; // if user pressed the button zero counter of dipslay backlight
 Delay_ms(1000);
 if ( Increment==1 && Exit==1 && Decrement==0)
 {
@@ -1612,6 +1617,7 @@ LCD_CLEAR(2,1,16);
 //-----------------RunOnBatteryVoltageMode--------------------------------------
 if (Increment==0 && Exit==1 && Decrement==1)      // first
 {
+LCD_ReConfig();
 Delay_ms(2000);
 if ( Increment==0 && Exit==1 && Decrement==1)
 {
@@ -1628,8 +1634,9 @@ LCD_CMD(_LCD_CLEAR);
 
 if(Decrement==1 && Exit==0)
 {
-Backlight=1;
-UpdateScreenTime=0; // if user pressed the button zero counter of dipslay backlight
+LCD_ReConfig();
+//Backlight=1;
+//UpdateScreenTime=0; // if user pressed the button zero counter of dipslay backlight
 Delay_ms(2500);
 if (Decrement==1 && Exit==0)
 {
@@ -1640,7 +1647,7 @@ TurnOffLoadsByPass=1;
 RunLoadsByBass=0;
 Relay_L_Solar=0;
 Relay_L_Solar_2=0;
-//LCD_CLEAR(2,1,16);
+
 LCD_OUT(1,16," ");
 }
 }
@@ -1649,7 +1656,8 @@ LCD_OUT(1,16," ");
 //------------------------------UPS Mode --------------------------------
 if (Set==0 && Decrement==0 && Increment==0  && Exit==1)
 {
-Backlight=1;
+LCD_ReConfig();
+//Backlight=1;
 Delay_ms(2000);
 if (Set==0 && Decrement==0 && Increment==0  && Exit==1)
 {
@@ -1909,7 +1917,7 @@ LCD_Init();
 LCD_CMD(_LCD_CLEAR);       //very important
 LCD_CMD(_LCD_CURSOR_OFF);
 LCD_CMD(_LCD_RETURN_HOME);
-LCD_CMD(_LCD_TURN_OFF);
+//LCD_CMD(_LCD_TURN_OFF);
 UpdateScreenTime=0;
 }
 OCF2A_Bit=1;
@@ -1963,7 +1971,7 @@ SREG_I_bit=1;
 //----------------------------------Check for Params----------------------------
 void CheckForParams()
 {
-if (hours_lcd_1>24
+if (hours_lcd_1<0
 || hours_lcd_2>24
 || minutes_lcd_1 >59
 || minutes_lcd_2 >59
@@ -1974,6 +1982,18 @@ if (hours_lcd_1>24
 || startupTIme_1 > 900
 || startupTIme_2  >900
  ) EEPROM_FactorySettings(1);
+}
+//------------------------- LCD_CONFIG------------------------------------------
+void LCD_ReConfig()
+{
+Backlight=1;
+UpdateScreenTime=0;
+//LCD_CMD(_LCD_TURN_ON);  //turn lcd on
+Delay_ms(50);
+//Lcd_Init();
+//LCD_CMD(_LCD_CLEAR);
+Lcd_CMD(_LCD_CURSOR_OFF);
+LCD_CMD(_LCD_RETURN_HOME);
 }
 //------------------------------------------------------------------------------
 void main() {
