@@ -219,9 +219,9 @@ void Interrupt_INT0() iv IVT_ADDR_INT0
 {
 //LCD_CMD(_LCD_TURN_ON);  //turn lcd on
 Delay_ms(50);
-Lcd_Init();
-LCD_CMD(_LCD_CLEAR);
-Lcd_CMD(_LCD_CURSOR_OFF);
+//Lcd_Init();
+//LCD_CMD(_LCD_CLEAR);
+//Lcd_CMD(_LCD_CURSOR_OFF);
 LCD_CMD(_LCD_RETURN_HOME);
 UpdateScreenTime=0; // if user pressed the button zero counter of dipslay backlight
 Backlight=1;
